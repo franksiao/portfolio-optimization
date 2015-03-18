@@ -1,0 +1,24 @@
+{
+  "name": "portfolio-optimization",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/franksiao/portfolio-optimization.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/franksiao/portfolio-optimization/issues"
+  },
+  "homepage": "https://github.com/franksiao/portfolio-optimization",
+  "dependencies": {
+    "express": "~4.10.2",
+    "multer": "~0.1.6",
+    "mysql": "^2.5.4"
+  }
+}
