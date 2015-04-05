@@ -19,6 +19,9 @@
   "dependencies": {
     "express": "~4.10.2",
     "multer": "~0.1.6",
-    "mysql": "^2.5.4"
+    "mysql": "^2.5.4",
+    "csvtojson": "~0.3.19",
+    "promise": "~6.1.0",
+    "underscore": "~1.8.3"
   }
 }

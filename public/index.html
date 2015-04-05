@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"> 
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,26 +8,37 @@
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.css" rel="stylesheet">
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <link href="css/fileinput.min.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
   </head>
   <body>
     <h1>Portfolio Optimization</h1>
-
-    <form class="form-inline">
+    <h2>Add Contract</h2>
+    <form id="uploadForm"
+          enctype="multipart/form-data"
+          action="/upload-object"
+          method="post">
+      <div class="form-group" id="contract-name-group">
+        <label for="new-contract-name">Contract Name</label>
+        <input type="text" 
+              class="form-control" 
+              name="contract_name"
+              id="new-contract-name">
+        <div class="help-block contract-error" style="display: none">
+          Invalid Name
+        </div>
+      </div>
       <div class="form-group">
-        <input type="file" name="new-object" id="file-input" >
+        <label for="contract_file">File(*.csv)</label>
+        <input id="data-file-upload" 
+              type="file" 
+              data-show-preview="false"
+              name="contract_file">
+        <div id="file-type-error" class="help-block"></div>
       </div>
     </form>
-    
-    <button id="upload-button" class="btn btn-primary">Upload</button>
-    <button id="run-r" class="btn btn-primary">RUN</button>
-
+    <button id="clear-all" type="button" class="btn btn-primary">Clear All</button>
+    <button id="run-r" type="button" class="btn btn-primary">Run</button>
     <h2>Contracts</h2>
     <pre class="contract-code"></pre>
 
@@ -39,6 +50,8 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script type="text/javascript" src="js/bootstrap.js"></script>
     <script type="text/javascript" src="js/opencpu.js"></script>
+    <script type="text/javascript" src="js/fileinput.min.js"></script>
+    <script type="text/javascript" src="js/jquery.form.min.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
   </body>
 </html>
