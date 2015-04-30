@@ -4,6 +4,7 @@ var multer = require('multer');
 var fs = require('fs');
 var csvtojson = require("csvtojson");
 var _ = require("underscore");
+var bodyParser = require("body-parser");
 
 var config = require('./config.json');
 
@@ -13,7 +14,31 @@ var app = express();
 var Promise = require('promise');
 var pReadFile = Promise.denodeify(fs.readFile);
 
+var Queries = require('./app/Queries.js');
+
+var standardSuccessHandler = function(res) {
+	return function success(result) {
+		var obj = {
+			status: 'success'
+		}
+		if (result.data && Array.isArray(result.data) && result.data.length) {
+			obj.data = result.data[0];
+		}
+		res.send(obj);
+	}
+}
+var standardFailureHandler = function(res) {
+	return function failure(err) {
+		res.send({
+			status: 'failed',
+			error: err
+		});
+	}
+}
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public'));
+
 app.use(multer({
 	dest: './uploads/',
 	rename: function (fieldname, filename) {
@@ -24,21 +49,53 @@ app.use(multer({
 	}
 }));
 
-//Database stuff
-app.get('/contracts', function(req, res, next) {
-	//Query for all contracts
-	console.log('Querying for contracts:')
-	connection.query('SELECT * from opt.tblContracts', function(err, rows, fields) {
-		if (!err) {
-			res.send(rows);
-			console.log('Contracts:')
-			console.log(rows);
-		} else {
-			console.log('Error while performing Query.');
-			console.log(err);
-		}
-	});
+app.get('/portfolios', function(req, res, next) {
+	var params = {
+		db_connection: connection,
+		id: req.query.id
+	};
+	Queries.getPortfolios(params)
+	.then(standardSuccessHandler(res), standardFailureHandler(res));
 });
+
+app.get('/contracts', function(req, res, next) {
+	var params = {
+		db_connection: connection,
+		contract_ids: req.query.ids,
+		portfolio_id: req.query.portfolio_id
+	}
+	Queries.getContracts(params)
+	.then(standardSuccessHandler(res), standardFailureHandler(res));
+});
+
+app.delete('/contracts', function(req, res, next) {
+	var contractIds = req.body.ids;
+	if (contractIds && contractIds.length > 0) {
+		var params = {
+			db_connection: connection,
+			contract_ids: contractIds
+		};
+		Queries.deleteSimulations(params)
+		.then(Queries.deleteContracts)
+		.then(standardSuccessHandler(res),standardFailureHandler(res));
+	} else {
+		res.send({
+			status: 'failed',
+			error: 'No contract ids specified'
+		});
+	}
+});
+app.get('/constraints', function(req, res, next) {
+	var params = {
+		db_connection: connection,
+		constraint_set_id: req.query.set_id,
+		portfolio_id: req.query.portfolio_id
+	}
+	Queries.getConstraints(params)
+	.then(standardSuccessHandler(res), standardFailureHandler(res));
+});
+
+
 
 app.get('/results', function(req, res, next) {
 	//Query for all results
@@ -66,11 +123,16 @@ var connection = mysql.createConnection({
 
 connection.connect();
 
-function insertNewContract(contractName) {
+function insertNewContract(contractName, portfolioId) {
 	return function(contractData) {
 		var promise = new Promise(function(resolve,reject) {
 			console.log('Inserting new contract named: ' + contractName);
-			var query = connection.query('INSERT INTO opt.tblContracts (Name) VALUES(?)', [contractName], function(err, result) {
+			var set = {
+				'Name': contractName,
+				'return': 0,
+				'portID': portfolioId
+			};
+			var q = connection.query('INSERT INTO opt.tblContracts SET ?', set, function(err, result) {
 				if (!err) {
 					console.log('Inserted ' + result.insertId);
 					resolve({
@@ -84,7 +146,7 @@ function insertNewContract(contractName) {
 					reject(err);
 				}
 			});
-			console.log(query.sql);
+			console.log(q.sql);
 		});
 		return promise;
 	};
@@ -94,7 +156,7 @@ function populateSimulations(params) {
 	var promise = new Promise(function(resolve,reject) {
 		console.log('Populating simulations');
 		var data = formatSimulations(params.data, params.id);
-		var query = 'INSERT INTO opt.tblSimulations (ContractSID, Year, Event, Loss) Values ?';
+		var query = 'INSERT INTO opt.tblSimulations (ContractSID, Year, Event, Loss, Geography) Values ?';
 		var q = connection.query(query, [data], function(err, result) {
 			if (err) {
 				reject(err);
@@ -152,7 +214,8 @@ function formatSimulations(simulations, id) {
 			id,
 			value.Year,
 			value.Event,
-			value.Loss
+			value.Loss,
+			value.Geo
 		]);
 	});
 	return formatted;
@@ -174,14 +237,16 @@ function convertToJson(data) {
 	return promise;
 }
 
+
 app.post('/upload-object', function(req, res) {
 	console.log('Uploading');
 	var path = req.files.contract_file.path;
 	var contractName = req.body.contract_name;
-	console.log(contractName);
+	console.log(req.body);
+	var portfolioId = req.body.portfolio_id;
 	pReadFile(path, 'utf8')
 	.then(convertToJson)
-	.then(insertNewContract(contractName))
+	.then(insertNewContract(contractName, portfolioId))
 	.then(populateSimulations)
 	.then(clearTable('opt.tblResult'))
 	.then(deleteFile(path))
@@ -193,7 +258,6 @@ app.post('/upload-object', function(req, res) {
 		console.log(err);
 		res.send('failure');
 	}
-
 });
 app.post('/clear-all', function(req, res) {
 	console.log('clear-all');

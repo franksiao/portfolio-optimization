@@ -1,0 +1,44 @@
+<div id="portfolio-content">
+	<div class="container-fluid">
+		<h2 id="portfolio-name"><%= name %></h2>
+		<a href="#" id="portfolio-name-edit">
+			<i class="glyphicon glyphicon-pencil"></i>
+		</a>
+	</div>
+	<div class="container-fluid">
+		<h3>Contracts</h3>
+		<select multiple id="associated-contracts" class="form-control"></select>
+		<div class="button-container">
+			<button id="new-contract" type="button" class="btn btn-default">
+				New
+				<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+			</button>
+			<button id="edit-contract" type="button" disabled="disabled" class="btn btn-default">Edit</button>
+			<button id="delete-contract" type="button" disabled="disabled" class="btn btn-default">Delete</button>
+			<!-- set tooltip so user knows to select a contract to edit -->
+		</div>
+
+	</div>
+	<div class="container-fluid">
+		<h3>Constraints</h3>
+		<select multiple id="associated-constraints" class="form-control"></select>
+		<div class="button-container">
+			<button id="new-constraint" type="button" class="btn btn-default">
+				New
+				<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+			</button>
+			<button id="edit-constraint" type="button" disabled="disabled" class="btn btn-default">Edit</button>
+			<button id="delete-constraint" type="button" disabled="disabled" class="btn btn-default">Delete</button>
+			<!-- set tooltip so user knows to select a constraint to edit -->
+		</div>
+	</div>
+	<div class="container-fluid">
+		<h3>Results</h3>
+		<div class="panel panel-default">
+			<div id="result-code" class="panel-body"></div>
+		</div>
+		<div class="button-container">
+        	<button id="run-r" type="button" class="btn btn-primary">Run</button>
+        </div>
+	</div>
+</div>
