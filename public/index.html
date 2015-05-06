@@ -13,15 +13,34 @@
     <link href="css/fileinput.min.css" rel="stylesheet">
     <link href="css/loading.css" rel="stylesheet">
     <link href="css/bootstrap-editable.css" rel="stylesheet">
+    <link href="css/bootstrap-select.css" rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
      <script data-main="js/app" src="js/lib/require.js"></script>
   </head>
   <body>
-    <div id="wrapper">
-      <div id="sidebar-wrapper"></div>
-      <div id="page-content-wrapper">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bam-bam-collapsable">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Bam Bam Analytics</a>
       </div>
-    </div>
+        <div class="collapse navbar-collapse" id="bam-bam-collapsable">
+          <form class="navbar-form navbar-left" role="search">
+            <div class="form-group" id="portfolio-select-container"></div>
+            <button type="button" class="btn btn-primary" id="create-portfolio">
+              <span class="glyphicon glyphicon-plus" aria-hidden="true">
+              </span>
+            </button>
+           </form>
+         </div>
+      </div>
+    </nav>
+    <div id="page-content-wrapper"></div>
     <div id="page-modal" class="modal fade">
       <div class="modal-dialog">
       </div>

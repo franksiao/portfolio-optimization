@@ -9,7 +9,8 @@ requirejs.config({
       'underscore': 'lib/underscore',
       'text': 'lib/require_text',
       'x-editable': 'lib/bootstrap-editable',
-      'bootstrap-dialog': 'lib/bootstrap-dialog'
+      'bootstrap-dialog': 'lib/bootstrap-dialog',
+      'bootstrap-select': 'lib/bootstrap-select'
     },
     'shim': {
         'jquery-form': {
@@ -25,6 +26,9 @@ requirejs.config({
           deps: ['jquery', 'bootstrap']
         },
         'bootstrap-dialog': {
+          deps: ['jquery', 'bootstrap']
+        },
+        'bootstrap-select': {
           deps: ['jquery', 'bootstrap']
         }
     }

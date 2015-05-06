@@ -5,9 +5,8 @@ define([
 ], function(
 	$,
 	_,
-	PortfolioTemplate
+	html
 ) {
-	var _applyPortfolioTemplate = _.template(PortfolioTemplate);
 	
 	function PortfolioView(params) {
 		params = params || {};
@@ -16,11 +15,10 @@ define([
 		var _constraints = params.constraints || {};
 		var _onNewContractClicked = params.onNewContractClicked || function() {};
 		var _onDeleteContractClicked = params.onDeleteContractClicked || function() {};
+		var _onChangePortfolioName = params.onChangePortfolioName || function() {};
+		var _onDeletePortfolio = params.onDeletePortfolio || function() {};
+		var _$root = $(html);
 
-
-		var _$root = $(_applyPortfolioTemplate({
-			name: _name
-		}));
 		var _$name = _$root.find('#portfolio-name');
 		var _$editName = _$root.find('#portfolio-name-edit');
 		var _$associatedContracts = _$root.find('#associated-contracts');
@@ -33,10 +31,18 @@ define([
 		var _$editConstraint = _$root.find('#edit-constraint');
 		var _$deleteConstraint = _$root.find('#delete-constraint');
 
-
 		function _init() {
 			_$name.editable({
 				type: 'text',
+				url: function(params) {
+					var d = new $.Deferred;
+					_onChangePortfolioName(params.value).then(function success() {
+						d.resolve();
+					}, function() {
+						d.reject('Unable to update the profile name.');
+					});
+					return d.promise();
+				},
 				pk: 1,
 				name: 'portfolio-name',
 				toggle: 'manual',
@@ -100,6 +106,7 @@ define([
 					console.log('done');
 				});*/
 			});
+			_$root.find('#delete-portfolio').on('click', _onDeletePortfolio);
 		}
 
 		function _setContracts(contracts) {
@@ -139,7 +146,8 @@ define([
 		}
 		this.setPortfolioName = function(name) {
 			_name = name;
-			_$name.html(name);
+			// _$name.html(name);
+			_$name.editable('setValue', name);
 		}
 
 		_init();

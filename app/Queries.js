@@ -38,6 +38,67 @@ exports.getPortfolios = function(params) {
 	}));
 };
 
+exports.postPortfolio = function(params) {
+	params = params || {};
+	var connection = params.db_connection;
+	var name = params.name;
+
+	return (new Promise(function(resolve,reject) {
+		var queryString = 'INSERT INTO opt.tblPortfolios SET ?';
+		connection.query(queryString, {portName: name}, function(err, result) {
+			if (!err) {
+				console.log(result);
+				resolve({
+					name: name
+				});
+			} else {
+				reject(err.code);
+				console.log('Error while performing Query.');
+				console.log(err);
+			}
+		});
+	}));
+}
+
+exports.putPortfolio = function(params) {
+	params = params || {};
+	var connection = params.db_connection;
+	var id = params.id;
+	var name = params.name;
+
+	return (new Promise(function(resolve,reject) {
+		var queryString = 'UPDATE opt.tblPortfolios SET portName = ? WHERE portID = ?';
+		connection.query(queryString, [name, id], function(err, result) {
+			if (!err) {
+				console.log(result);
+				resolve({
+					id: result.insertId,
+					name: name
+				});
+			} else {
+				reject(err.code);
+				console.log('Error while performing Query.');
+				console.log(err);
+			}
+		});
+	}));
+}
+exports.deletePortfolio = function(params) {
+	params = params || {};
+	var connection = params.db_connection;
+	var portfolioId = params.portfolio_id || [];
+	//Query for all contracts
+	console.log('Deleting portfolio:');
+	return (new Promise(function(resolve,reject) {
+		var queryString = 'DELETE from opt.tblPortfolios';
+		if (portfolioId) {
+			queryString += ' WHERE portID=' + portfolioId;
+		} else {
+			reject('No portfolio id specified');
+		}
+		_standardQuery(resolve,reject,params,queryString,false);
+	}));
+};
 exports.getContracts = function(params) {
 	params = params || {};
 	var connection = params.db_connection;
