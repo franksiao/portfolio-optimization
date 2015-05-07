@@ -157,7 +157,7 @@ exports.deleteContracts = function(params) {
 			});
 			queryString += ' WHERE ' + queries.join(' OR ');
 		} else {
-			reject('No contract ids specified');
+			resolve(params);
 		}
 		_standardQuery(resolve,reject,params,queryString,false);
 	}));
@@ -177,10 +177,10 @@ exports.deleteSimulations = function(params) {
 				queries.push('contractSID=' + id);
 			});
 			queryString += ' WHERE ' + queries.join(' OR ');
+			_standardQuery(resolve,reject,params,queryString,false);
 		} else {
-			reject('Invalid params for deleteSimulations');
+			resolve(params);
 		}
-		_standardQuery(resolve,reject,params,queryString,false);
 	}));
 };
 

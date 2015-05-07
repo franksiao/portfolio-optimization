@@ -101,6 +101,7 @@ app.delete('/portfolio', function(req, res, next) {
 		//TODO: deleting Constraints
 	});
 });
+
 app.get('/contracts', function(req, res, next) {
 	var params = {
 		db_connection: connection,
@@ -118,6 +119,7 @@ app.delete('/contracts', function(req, res, next) {
 			db_connection: connection,
 			contract_ids: contractIds
 		};
+		//TODO: getconstraints with constraint target matching? or not
 		Queries.deleteSimulations(params)
 		.then(Queries.deleteContracts)
 		.then(standardSuccessHandler(res),standardFailureHandler(res));
