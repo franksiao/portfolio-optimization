@@ -29,9 +29,9 @@ exports.getPortfolios = function(params) {
 	var id = params.id || 0;
 	
 	return (new Promise(function(resolve, reject) {
-		var queryString = 'SELECT * from opt.tblPortfolios';
+		var queryString = 'SELECT * from opt.portfolio';
 		if (id > 0) {
-			queryString += ' WHERE portID=' + id;
+			queryString += ' WHERE id=' + id;
 		}
 		console.log(queryString);
 		_standardQuery(resolve,reject,params,queryString,true);
@@ -44,12 +44,13 @@ exports.postPortfolio = function(params) {
 	var name = params.name;
 
 	return (new Promise(function(resolve,reject) {
-		var queryString = 'INSERT INTO opt.tblPortfolios SET ?';
-		connection.query(queryString, {portName: name}, function(err, result) {
+		var queryString = 'INSERT INTO opt.portfolio SET ?';
+		connection.query(queryString, {name: name}, function(err, result) {
 			if (!err) {
 				console.log(result);
 				resolve({
-					name: name
+					name: name,
+					id: result.insertId
 				});
 			} else {
 				reject(err.code);
@@ -67,7 +68,7 @@ exports.putPortfolio = function(params) {
 	var name = params.name;
 
 	return (new Promise(function(resolve,reject) {
-		var queryString = 'UPDATE opt.tblPortfolios SET portName = ? WHERE portID = ?';
+		var queryString = 'UPDATE opt.portfolio SET name = ? WHERE id = ?';
 		connection.query(queryString, [name, id], function(err, result) {
 			if (!err) {
 				console.log(result);
@@ -90,9 +91,9 @@ exports.deletePortfolio = function(params) {
 	//Query for all contracts
 	console.log('Deleting portfolio:');
 	return (new Promise(function(resolve,reject) {
-		var queryString = 'DELETE from opt.tblPortfolios';
+		var queryString = 'DELETE from opt.portfolio';
 		if (portfolioId) {
-			queryString += ' WHERE portID=' + portfolioId;
+			queryString += ' WHERE id=' + portfolioId;
 		} else {
 			reject('No portfolio id specified');
 		}
@@ -108,15 +109,15 @@ exports.getContracts = function(params) {
 	return (new Promise(function(resolve,reject) {
 		console.log('Querying for contracts:');
 
-		var queryString = 'SELECT * from opt.tblContracts';
+		var queryString = 'SELECT * from opt.contract';
 		if (contractIds.length > 0) {
 			var queries = [];
 			ids.forEach(function(id) {
-				queries.push('contractSID=' + id);
+				queries.push('id=' + id);
 			});
 			queryString += ' WHERE ' + queries.join(' OR ');
 		} else if (portfolioId > 0) {
-			queryString += ' WHERE portID=' + portfolioId;
+			queryString += ' WHERE portfolio_id=' + portfolioId;
 		} else {
 			reject('Invalid request for contracts');
 		}
@@ -131,11 +132,11 @@ exports.getConstraints = function(params) {
 	var constraintSetId = params.constraint_set_id;
 	return (new Promise(function(resolve, reject) {
 		console.log('Querying for Constraints');
-		var queryString = 'SELECT * from opt.tblConstraint';
+		var queryString = 'SELECT * from opt.constraint_set';
 		if (portfolioId > 0) {
-			queryString += ' WHERE portID=' + portfolioId;
+			queryString += ' WHERE portfolio_id=' + portfolioId;
 		} else if (constraintSetId > 0) {
-			queryString += ' WHERE constraintSetID=' + constraintSetId;
+			queryString += ' WHERE id=' + constraintSetId;
 		} else {
 			reject('Invalid request for constraints');
 		}
@@ -149,11 +150,11 @@ exports.deleteContracts = function(params) {
 	//Query for all contracts
 	console.log('Deleting contracts:');
 	return (new Promise(function(resolve,reject) {
-		var queryString = 'DELETE from opt.tblContracts';
+		var queryString = 'DELETE from opt.contract';
 		if (contractIds.length > 0) {
 			var queries = [];
 			contractIds.forEach(function(id) {
-				queries.push('contractSID=' + id);
+				queries.push('id=' + id);
 			});
 			queryString += ' WHERE ' + queries.join(' OR ');
 		} else {
@@ -170,11 +171,11 @@ exports.deleteSimulations = function(params) {
 	//Query for all contracts
 	console.log('Deleting simulations:');
 	return (new Promise(function(resolve,reject) {
-		var queryString = 'DELETE from opt.tblSimulations';
+		var queryString = 'DELETE from opt.simulation_air';
 		if (contractIds.length > 0) {
 			var queries = [];
 			contractIds.forEach(function(id) {
-				queries.push('contractSID=' + id);
+				queries.push('contract_id=' + id);
 			});
 			queryString += ' WHERE ' + queries.join(' OR ');
 			_standardQuery(resolve,reject,params,queryString,false);
@@ -187,6 +188,79 @@ exports.deleteSimulations = function(params) {
 exports.insertContract = function(params) {
 	params = params || {};
 	var connection = params.db_connection;
-	var name = params.contract_name || 0;
+	var name = params.name || 0;
 	var portfolioId = params.portfolio_id || 0;
+	var returnVal = params.return_val;
+	
+	return (new Promise(function(resolve,reject) {
+		var set = {
+			name: name,
+			'return': returnVal,
+			portfolio_id: portfolioId
+		};
+		var queryString = 'INSERT INTO opt.contract SET ?';
+		connection.query(queryString, set, function(err, result) {
+			if (!err) {
+				resolve({
+					name: name,
+					id: result.insertId
+				});
+			} else {
+				reject(err.code);
+				console.log('Error while performing Query.');
+				console.log(err);
+			}
+		});
+	}));
+}
+
+exports.insertContract = function(params) {
+	params = params || {};
+	var connection = params.db_connection;
+	var name = params.name || 0;
+	var portfolioId = params.portfolio_id || 0;
+	var returnVal = params.return_val;
+	
+	return (new Promise(function(resolve,reject) {
+		var set = {
+			name: name,
+			'return': returnVal,
+			portfolio_id: portfolioId
+		};
+		var queryString = 'INSERT INTO opt.contract SET ?';
+		connection.query(queryString, set, function(err, result) {
+			if (!err) {
+				resolve({
+					name: name,
+					id: result.insertId
+				});
+			} else {
+				reject(err.code);
+				console.log('Error while performing Query.');
+				console.log(err);
+			}
+		});
+	}));
+}
+
+
+exports.insertSimulations = function(params) {
+	params = params || {};
+	var connection = params.db_connection;
+	var simulations = params.simulations || [];
+
+	return (new Promise(function(resolve,reject) {
+		//TODO: we probably need to validate that the data matches the column values
+		var queryString = 'INSERT INTO opt.simulation_air (contract_id, year, event, loss, geography) Values ?';
+		var q = connection.query(queryString, [simulations], function(err, result) {
+			if (!err) {
+				resolve();
+			} else {
+				console.log('Error while performing Query.');
+				console.log(err);
+				reject(err.code);
+			}
+		});
+		console.log(q.sql);
+	}));
 }

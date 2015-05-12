@@ -3,13 +3,25 @@
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
-    <h4 class="modal-title" id="new-contract-title">Upload New Contract</h4>
+    <h4 class="modal-title" id="new-contract-title">Create New Contract</h4>
   </div>
   <div class="modal-body">
     <form id="uploadForm"
       enctype="multipart/form-data"
       action="/upload-object"
       method="post">
+      <div class="form-group" id="file-upload">
+        <label for="contract_file">Upload Simulation File(*.csv)</label>
+        <input id="data-file-upload" 
+              type="file" 
+              data-show-preview="false"
+              name="contract_file">
+        <div id="file-type-error" class="help-block"></div>
+      </div>
+      <h5 class="form-group" id="upload-success" style="display:none;">
+        <span class="file-name"></span>
+        <span class="label label-success">Uploaded Successfully</span>
+      </h5>
       <div class="form-group" id="contract-name-group">
         <label for="new-contract-name">Contract Name</label>
         <input type="text" 
@@ -20,14 +32,16 @@
           Invalid Name
         </div>
       </div>
-      <div class="form-group">
-        <label for="contract_file">File(*.csv)</label>
-        <input id="data-file-upload" 
-              type="file" 
-              data-show-preview="false"
-              name="contract_file">
-        <div id="file-type-error" class="help-block"></div>
+      <div class="form-group" id="contract-return-group">
+        <label for="new-contract-return">Return</label>
+        <input type="text" class="form-control" id="new-contract-return" value="0">
+        <div class="help-block contract-error" style="display: none">
+          Invalid Return
+        </div>
       </div>
     </form>
   </div>
+  <div class="modal-footer">
+    <button id="create-contract" type="button" class="btn btn-primary">Create Contract</button>
+</div>
 </div>

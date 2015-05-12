@@ -34,8 +34,7 @@ define([
 		onDeletePortfolio: deletePortfolio
 	});
 	var _newContractView = new NewContractView({
-		onUploadStarted: newContractUploadStartedHandler,
-		onUploadFinished: newContractUploadFinishedHandler
+		onCreateNewContract: createNewContractHandler
 	});
 
 	var _currentPortfolioId = null;
@@ -66,14 +65,14 @@ define([
 			//get portfolio
 			PortfolioModel.getAllPortfolios().then(function(portfolios) {
 				portfolios.data.forEach(function(port) {
-					_portfolioMapping[port.portID] = port.portName;
-					_$portfolioSelect.append($('<option value="' + port.portID + '">' + port.portName + '</option>'));
+					_portfolioMapping[port.id] = port.name;
+					_$portfolioSelect.append($('<option value="' + port.id + '">' + port.name + '</option>'));
 				});
 				_$portfolioSelect.selectpicker();
 
 				if (portfolios.data.length && !_currentPortfolioId) {
 					//pick first one as default
-					_currentPortfolioId = portfolios.data[0].portID;
+					_currentPortfolioId = portfolios.data[0].id;
 				}
 				if (_currentPortfolioId) {
 					_$portfolioSelect.selectpicker('val', _currentPortfolioId);
@@ -121,17 +120,22 @@ define([
 	}
 
 	function _loadPortfolioView() {
-		_portfolioView.setPortfolioName(_portfolioMapping[_currentPortfolioId]);
-		ContractModel.getContracts(_currentPortfolioId).then(function(contracts) {
-			_portfolioView.setContracts(contracts);
-			console.log(contracts);
-			ConstraintModel.getConstraints(_currentPortfolioId).then(function(constraints) {
-				console.log(constraints);
-				_portfolioView.setConstraints(constraints);
-				$('#page-content-wrapper').append(_portfolioView.get$Root());
-				$('.loading').hide();
+		if (_currentPortfolioId) {
+			_portfolioView.setPortfolioName(_portfolioMapping[_currentPortfolioId]);
+			ContractModel.getContracts(_currentPortfolioId).then(function(contracts) {
+				_portfolioView.setContracts(contracts);
+				console.log(contracts);
+				ConstraintModel.getConstraints(_currentPortfolioId).then(function(constraints) {
+					console.log(constraints);
+					_portfolioView.setConstraints(constraints);
+					$('#page-content-wrapper').append(_portfolioView.get$Root());
+					$('.loading').hide();
+				});
 			});
-		});
+		} else {
+			$('#page-content-wrapper').append($('<div>Please create a portfolio.</div>'));
+			$('.loading').hide();
+		}
 	}
 
 	//binding
@@ -155,7 +159,12 @@ define([
 			btnOKLabel: 'Delete',
 			callback: function(confirmed) {
 				if (confirmed) {
-					ContractModel.deleteContracts(contractIds);
+					ContractModel.deleteContracts(contractIds).then(function() {
+						return ContractModel.getContracts(_currentPortfolioId);
+					}).then(function(contracts) {
+						_portfolioView.setContracts(contracts);
+						$('.loading').hide();
+					});
 				}
 			}
 		});
@@ -190,14 +199,20 @@ define([
 		}));
 	}
 
-	function newContractUploadStartedHandler() {
+	function createNewContractHandler(contract_data) {
 		$('.loading').show();
-	}
-
-	function newContractUploadFinishedHandler() {
-		ContractModel.getContracts(_currentPortfolioId).then(function(contracts) {
+		$('#page-modal').modal('hide');
+		var params = {
+			name: contract_data.name,
+			resource_id: contract_data.resource_id,
+			portfolio_id: _currentPortfolioId,
+			type: 'AIR', //hard code for now
+			'return': contract_data.return
+		};
+		ContractModel.createContract(params).then(function() {
+			return ContractModel.getContracts(_currentPortfolioId);
+		}).then(function(contracts) {
 			_portfolioView.setContracts(contracts);
-			$('#page-modal').modal('hide');
 			$('.loading').hide();
 		});
 	}
