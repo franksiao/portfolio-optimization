@@ -1,4 +1,7 @@
-var Queries = require('./Queries.js');
+var ConstraintSetQuery = require('./query/ConstraintSetQuery.js');
+var ContractConstraintQuery = require('./query/ContractConstraintQuery.js');
+var GeographyConstraintQuery = require('./query/GeographyConstraintQuery.js');
+
 var ApiUtils = require('./ApiUtils');
 var RSVP = require('rsvp');
 
@@ -97,7 +100,7 @@ exports.setup = function(router, connection) {
 		if (req.query.id) {
 			params.ids = ApiUtils.formatId(req.query.id);
 		}
-		Queries.constraintSet.select(connection, params)
+		ConstraintSetQuery.select(connection, params)
 		.then(selectContractConstraintHandler)
 		.then(selectGeographyConstraintHandler)
 		.then(
@@ -113,7 +116,7 @@ exports.setup = function(router, connection) {
 			for (var i = 0; i < constraintSets.length; ++i) {
 				var set = constraintSets[i];
 				promises.push(new RSVP.Promise(function(resolve,reject) {
-					Queries.contractConstraint.select(connection, {
+					ContractConstraintQuery.select(connection, {
 						set_id: set.id
 					}).then(function(data) {
 						resolve(data);
@@ -153,7 +156,7 @@ exports.setup = function(router, connection) {
 			for (var i = 0; i < constraintSets.length; ++i) {
 				var set = constraintSets[i];
 				promises.push(new RSVP.Promise(function(resolve,reject) {
-					Queries.geographyConstraint.select(connection, {
+					GeographyConstraintQuery.select(connection, {
 						set_id: set.id
 					}).then(function(data) {
 						resolve(data);
@@ -187,7 +190,6 @@ exports.setup = function(router, connection) {
 		}
 	});
 	router.post('/constraint', function(req, res) {
-		console.log(req.body);
 		req.checkBody('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
 		req.checkBody('name', 'Invalid name').notEmpty().isAlphanumeric();
 		req.checkBody('target_return', 'Invalid target_return').optional().isNumericOrNull();
@@ -212,7 +214,7 @@ exports.setup = function(router, connection) {
 		params = setParam(params, 'target_tvar_threshold', req.body.target_tvar_threshold);
 		params = setParam(params, 'total_size', req.body.total_size);
 
-		Queries.constraintSet.insert(connection, params)
+		ConstraintSetQuery.insert(connection, params)
 		.then(insertContractConstraintHandler)
 		.then(insertGeographyConstraintHandler)
 		.then(
@@ -231,7 +233,7 @@ exports.setup = function(router, connection) {
 						checkNull(value.min_investment)
 					]);
 				});
-				Queries.contractConstraint.insert(connection, {
+				ContractConstraintQuery.insert(connection, {
 					contract_constraint: formattedContractConstraints
 				}).then(function() {
 					resolve(constraintSet);
@@ -253,7 +255,7 @@ exports.setup = function(router, connection) {
 						checkNull(value.min_investment)
 					]);
 				});
-				Queries.geographyConstraint.insert(connection, {
+				GeographyConstraintQuery.insert(connection, {
 					geography_constraint: formattedGeoConstraints
 				}).then(function() {
 					resolve(constraintSet);
@@ -292,7 +294,7 @@ exports.setup = function(router, connection) {
 		params = setParam(params, 'target_tvar_threshold', req.body.target_tvar_threshold);
 		params = setParam(params, 'total_size', req.body.total_size);
 
-		var promise = Queries.constraintSet.update(connection, params);
+		var promise = ConstraintSetQuery.update(connection, params);
 		if (Array.isArray(contractConstraints)) {
 			promise = promise.then(deleteContractConstraintHandler)
 						.then(insertContractConstraintHandler);
@@ -308,7 +310,7 @@ exports.setup = function(router, connection) {
 
 		function deleteContractConstraintHandler(constraintSet) {
 			return (new RSVP.Promise(function(resolve,reject) {
-				Queries.contractConstraint.delete(connection, {
+				ContractConstraintQuery.delete(connection, {
 					set_id: constraintSet.id
 				}).then(function() {
 					resolve(constraintSet);
@@ -330,7 +332,7 @@ exports.setup = function(router, connection) {
 						checkNull(value.min_investment)
 					]);
 				});
-				Queries.contractConstraint.insert(connection, {
+				ContractConstraintQuery.insert(connection, {
 					contract_constraint: formattedContractConstraints
 				}).then(function() {
 					resolve(constraintSet);
@@ -343,7 +345,7 @@ exports.setup = function(router, connection) {
 		}
 		function deleteGeographyConstraintHandler(constraintSet) {
 			return (new RSVP.Promise(function(resolve,reject) {
-				Queries.geographyConstraint.delete(connection, {
+				GeographyConstraintQuery.delete(connection, {
 					set_id: constraintSet.id
 				}).then(function() {
 					resolve(constraintSet);
@@ -365,7 +367,7 @@ exports.setup = function(router, connection) {
 						checkNull(value.min_investment)
 					]);
 				});
-				Queries.geographyConstraint.insert(connection, {
+				GeographyConstraintQuery.insert(connection, {
 					geography_constraint: formattedGeoConstraints
 				}).then(function() {
 					resolve(constraintSet);
@@ -389,12 +391,11 @@ exports.setup = function(router, connection) {
 		
 		//query
 		var ids = ApiUtils.formatId(req.body.id);
-		console.log(ids);
 		var params = {
 			portfolio_id: req.body.portfolio_id,
 			ids: ids
 		};
-		Queries.constraintSet.delete(connection, params)
+		ConstraintSetQuery.delete(connection, params)
 		.then(deleteContractConstraintHandler)
 		.then(deleteGeographyConstraintHandler)
 		.then(
@@ -403,7 +404,7 @@ exports.setup = function(router, connection) {
 		);
 		function deleteContractConstraintHandler() {
 			return (new RSVP.Promise(function(resolve,reject) {
-				Queries.contractConstraint.delete(connection, {
+				ContractConstraintQuery.delete(connection, {
 					set_id: ids
 				}).then(function() {
 					resolve();
@@ -416,7 +417,7 @@ exports.setup = function(router, connection) {
 		}
 		function deleteGeographyConstraintHandler() {
 			return (new RSVP.Promise(function(resolve,reject) {
-				Queries.geographyConstraint.delete(connection, {
+				GeographyConstraintQuery.delete(connection, {
 					set_id: ids
 				}).then(function() {
 					resolve();

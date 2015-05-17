@@ -1,11 +1,13 @@
-var Queries = require('./Queries.js');
+var ContractQuery = require('./query/ContractQuery.js');
+var AirSimulationQuery = require('./query/AirSimulationQuery.js');
+var ContractConstraintQuery = require('./query/ContractConstraintQuery.js');
+
+
 var ApiUtils = require('./ApiUtils');
 var _ = require("underscore");
 var fs = require('fs');
 var csvtojson = require("csvtojson");
-// var Promise = require('promise');
 var RSVP = require('rsvp');
-
 var pReadFile = RSVP.denodeify(fs.readFile);
 
 var getResourceFile = function(resource_id) {
@@ -39,132 +41,164 @@ var convertDataToJson = function(data) {
 }
 
 exports.setup = function(router, connection) {
-	router.get('/contracts', function(req, res, next) {
-		console.log(req.query);
+	router.get('/contract', function(req, res, next) {
+		req.checkQuery('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
+		req.checkQuery('id', 'Invalid id').optional().isValidId();
+		if (ApiUtils.handleError(req,res)) {
+			return;
+		}
 		var params = {
-			db_connection: connection,
-			contract_ids: req.query.ids,
 			portfolio_id: req.query.portfolio_id
 		}
-		Queries.getContracts(params)
-		.then(ApiUtils.DefaultApiSuccessHandler(res), ApiUtils.DefaultApiFailureHandler(res));
+		if (req.query.id) {
+			params.ids = ApiUtils.formatId(req.query.id);
+		}
+
+		ContractQuery.select(connection, params).then(
+			ApiUtils.DefaultApiSuccessHandler(res),
+			ApiUtils.DefaultApiFailureHandler(res)
+		);
 	});
 
 	router.put('/contract', function(req, res, next) {
-		var contractId = req.body.id;
-		var contractName = req.body.name;
-		var return_val = req.body.return;
-		console.log(req.body);
-		if (contractId) {
-			var params = {
-				db_connection: connection,
-				id: contractId,
-				name: contractName,
-				'return': return_val
-			};
-			Queries.updateContract(params)
-			.then(ApiUtils.DefaultApiSuccessHandler(res),ApiUtils.DefaultApiFailureHandler(res));
-		} else {
-			res.send({
-				status: 'failed',
-				error: 'No contract id specified'
+		//validation
+		req.checkBody('id', 'Invalid').notEmpty().isInt();
+		req.checkBody('name', 'Invalid name').optional().notEmpty().isAlphanumeric();
+		req.checkBody('return_value', 'Invalid return_value').optional().isNumericOrNull();
+		if (ApiUtils.handleError(req,res)) {
+			return;
+		}
+		//query
+		var params = ApiUtils.paramsFormatter(req.body, ['id', 'name', 'return_value']);
+		console.log(params);
+		ContractQuery.update(connection, params).then(
+			ApiUtils.DefaultApiSuccessHandler(res),
+			ApiUtils.DefaultApiFailureHandler(res)
+		);
+	});
+	router.delete('/contract', function(req, res, next) {
+		//validation
+		req.checkBody('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
+		req.checkBody('id', 'Invalid id').notEmpty().isValidId();
+
+		if (ApiUtils.handleError(req,res)) {
+			return;
+		}
+		//query
+		var ids = ApiUtils.formatId(req.body.id);
+		var params = {
+			portfolio_id: req.body.portfolio_id,
+			ids: ids
+		};
+
+		ContractQuery.delete(connection, params)
+		.then(deleteSimulationHandler)
+		.then(deleteContractConstraintHandler)
+		.then(
+			ApiUtils.DefaultApiSuccessHandler(res),
+			ApiUtils.DefaultApiFailureHandler(res)
+		);
+		function deleteSimulationHandler() {
+			return (new RSVP.Promise(function(resolve,reject) {
+				AirSimulationQuery.delete(connection, {
+					contract_id: ids
+				}).then(function() {
+					resolve();
+				}, function(err) {
+					reject(err);
+				});
+			})).catch(function(reason) {
+				console.log('Error at deleteSimulationHandler', reason);
 			});
 		}
-	});
-	router.delete('/contracts', function(req, res, next) {
-		var contractIds = req.body.ids;
-		if (contractIds && contractIds.length > 0) {
-			var params = {
-				db_connection: connection,
-				contract_ids: contractIds
-			};
-			//TODO: getconstraints with constraint target matching? or not
-			Queries.deleteSimulations(params)
-			.then(Queries.deleteContracts)
-			.then(ApiUtils.DefaultApiSuccessHandler(res),ApiUtils.DefaultApiFailureHandler(res));
-		} else {
-			res.send({
-				status: 'failed',
-				error: 'No contract ids specified'
+		function deleteContractConstraintHandler() {
+			return (new RSVP.Promise(function(resolve,reject) {
+				ContractConstraintQuery.delete(connection, {
+					contract_id: ids
+				}).then(function() {
+					resolve();
+				}, function(err) {
+					reject(err);
+				});
+			})).catch(function(reason) {
+				console.log('Error at deleteContractConstraintHandler', reason);
 			});
 		}
 	});
 	router.post('/contract', function(req,res) {
-		var resource_id = req.body.resource_id;
-		var name = req.body.name;
-		var portfolio_id = req.body.portfolio_id;
-		var return_val = req.body.return;
+		req.checkBody('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
+		req.checkBody('type', 'Invalid type').notEmpty().isValidType(['AIR']);
+		req.checkBody('name', 'Invalid name').notEmpty().isAlphanumeric();
+		req.checkBody('return_value', 'Invalid return_value').notEmpty().isNumericOrNull();
+		req.checkBody('resource_id', 'Invalid resource_id').notEmpty();
 
-		getResourceFile(resource_id)
+		if (ApiUtils.handleError(req,res)) {
+			return;
+		}
+
+		var simulations;
+
+		getResourceFile(req.body.resource_id)
 		.then(convertDataToJson)
-		.then(createContractHandler)
-		.then(createSimulationHandler)
-		.then(function success(contract_id) {
-			deleteResourceFile(resource_id).then(function() {
-				res.send({
-					status: 'success',
-					id: contract_id
-				});
+		.then(insertContractHandler)
+		.then(insertSimulationHandler)
+		.then(function success(result) {
+			deleteResourceFile(req.body.resource_id).then(function() {
+				ApiUtils.DefaultApiSuccessHandler(res)(result);
 			}, function() {
-				console.log('Warning: failed to delete resource file');
-				res.send({
-					status: 'success',
-					id: contract_id
-				});
+				console.log('Warning: failed to delete resource file', req.body.resource_id);
+				ApiUtils.DefaultApiSuccessHandler(res)(result);
 			});
 		}, function failure(err) {
-			deleteResourceFile(resource_id).then(function() {
-				res.send({
-					status: 'failed',
-					error: err
-				});
+			deleteResourceFile(req.body.resource_id).then(function() {
+				ApiUtils.DefaultApiFailureHandler(res)(err);
 			}, function() {
-				console.log('Warning: failed to delete resource file');
-				res.send({
-					status: 'failed',
-					error: err
-				});
+				console.log('Warning: failed to delete resource file', req.body.resource_id);
+				ApiUtils.DefaultApiFailureHandler(res)(result);
 			});
-		});
+		});		
 
-		function createContractHandler(simulations) {
+		function insertContractHandler(jsonData) {
+			simulations = jsonData;
 			return (new RSVP.Promise(function(resolve,reject) {
-				Queries.insertContract({
-					db_connection: connection,
-					name: name,
-					portfolio_id: portfolio_id,
-					return_val: return_val
-				}).then(function(db_response) {
-					resolve({
-						contract_id: db_response.id,
-						simulations: simulations
-					});
+				var params = {
+					name: req.body.name,
+					return_value: req.body.return_value,
+					type: req.body.type,
+					portfolio_id: req.body.portfolio_id
+				};
+				ContractQuery.insert(connection, params).then(function(contract) {
+					resolve(contract);
 				}, function(err) {
 					reject(err);
 				});
-			}));
+			})).catch(function(reason) {
+				console.log('Error at insertContractHandler', reason);
+			});
 		}
-		function createSimulationHandler(data) {
+
+		function insertSimulationHandler(contract) {
 			return (new RSVP.Promise(function(resolve,reject) {
 				var formattedSimulations = [];
-				_.each(data.simulations, function(value, key) {
+				_.each(simulations, function(value, key) {
 					formattedSimulations.push([
-						data.contract_id,
+						contract.id,
 						value.Year,
 						value.Event,
 						value.Loss,
 						value.Geo
 					]);
 				});
-				Queries.insertSimulations({
-					db_connection: connection,
-					simulations: formattedSimulations
+				AirSimulationQuery.insert(connection, {
+					simulation: formattedSimulations
 				}).then(function() {
-					resolve(data.contract_id);
+					resolve(contract);
 				}, function(err) {
 					reject(err);
 				});
-			}));
+			})).catch(function(reason) {
+				console.log('Error at insertSimulationHandler', reason);
+			});
 		}
 	});
 

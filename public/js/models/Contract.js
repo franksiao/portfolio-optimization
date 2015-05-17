@@ -9,7 +9,7 @@ define([
 ) {
 	function getContracts(pId) {
 		var promise = new RSVP.Promise(function(resolve, reject) {
-			$.get('contracts', {portfolio_id: pId}, function(response) {
+			$.get('contract', {portfolio_id: pId}, function(response) {
 				if (response.status === 'success') {
 					resolve(_formatContracts(response.data));
 				} else {
@@ -29,22 +29,23 @@ define([
 		});
 		return formattedContracts;
 	}
-	function deleteContracts(cIds) {
+	function deleteContracts(cIds, portfolio_id) {
 		console.log('delete contracts', cIds);
 		var promise = new RSVP.Promise(function(resolve, reject) {
 			$.ajax({
-				url: 'contracts',
+				url: 'contract',
 				type: 'DELETE',
-				data: {'ids': cIds},
-				success: function(response) {
-					if (response.status === 'success') {
-						console.log(response);
-						resolve();
-					} else {
-						console.assert(response.status, response.error);
-						reject(response.error);
-					}
+				data: {id: cIds, portfolio_id: portfolio_id}
+			}).done(function(response) {
+				if (response.status === 'success') {
+					console.log(response);
+					resolve();
+				} else {
+					console.assert(response.status, response.error);
+					reject(response.error);
 				}
+			}).fail(function(jqXHR) {
+				console.log(jqXHR.responseJSON.error);
 			});
 		});
 		return promise;

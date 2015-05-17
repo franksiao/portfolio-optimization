@@ -61,6 +61,15 @@ exports.CustomValidators = {
 	isNumericOrNull: isNumericOrNull,
 	isCustomValid: function(value, fn) {
 		return fn(value);
+	},
+	isValidType: function(value, types) {
+		var isValid = false;
+		types.forEach(function(type) {
+			if (value === type) {
+				isValid = true;
+			}
+		});
+		return isValid;
 	}
 };
 
@@ -77,10 +86,23 @@ exports.formatId = function(id) {
 exports.handleError = function(req,res) {
 	var errors = req.validationErrors();
 	if (errors) {
+		console.log(errors);
 		res.status(400).send({
 			error: errors[0]
 		});
 		return true;
 	}
 	return false;
+}
+
+exports.paramsFormatter = function(req, fields) {
+	var params = {};
+	fields.forEach(function(field) {
+		if (req[field] === '') {
+			params[field] = null;
+		} else if (req[field] !== undefined) {
+			params[field] = req[field];
+		}
+	});
+	return params;
 }

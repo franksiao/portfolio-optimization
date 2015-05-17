@@ -10,6 +10,8 @@ var PortfolioApi = require('./app/PortfolioApi.js');
 var ContractApi = require('./app/ContractApi.js');
 var FileUploadApi = require('./app/FileUploadApi.js');
 var ConstraintApi = require('./app/ConstraintApi.js');
+var GeographyApi = require('./app/GeographyApi.js');
+
 
 //promise helpers
 var ApiUtils = require('./app/ApiUtils');
@@ -58,6 +60,7 @@ function setupServer() {
 	FileUploadApi.setup(router, connection);
 	PortfolioApi.setup(router, connection);
 	ContractApi.setup(router, connection);
+	GeographyApi.setup(router, connection);
 	ConstraintApi.setup(router, connection);
 }
 

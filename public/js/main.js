@@ -166,7 +166,7 @@ define([
 			btnOKLabel: 'Delete',
 			callback: function(confirmed) {
 				if (confirmed) {
-					ContractModel.deleteContracts(contractIds).then(function() {
+					ContractModel.deleteContracts(contractIds, _currentPortfolioId).then(function() {
 						return ContractModel.getContracts(_currentPortfolioId);
 					}).then(function(contracts) {
 						_portfolioView.setContracts(contracts);
@@ -214,7 +214,7 @@ define([
 			resource_id: contract_data.resource_id,
 			portfolio_id: _currentPortfolioId,
 			type: 'AIR', //hard code for now
-			'return': contract_data.return
+			return_value: contract_data.return
 		};
 		ContractModel.createContract(params).then(function() {
 			return ContractModel.getContracts(_currentPortfolioId);

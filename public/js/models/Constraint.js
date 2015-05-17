@@ -19,13 +19,13 @@ define([
 				}
 			});
 			var opt = {
-				// portfolio_id: pId,
-				id: 37,
-				target_tvar_threshold: 33,
-				total_size: 11,
+				// id: 44,
+				portfolio_id: 2,
+				name:'test',
+				total_size: 123,
 				contract_constraint: [
 					{
-						contract_id: 1,
+						contract_id: 3,
 						max_investment: 5,
 						min_investment: 0
 					}
@@ -37,23 +37,32 @@ define([
 						min_investment: 0
 					},
 					{
-						geography: 2,
+						geography: "fdsfadfa",
 						max_investment: 1,
-						min_investment: 22
+						min_investment: 221
 					}
 				]
 			};
-			$.ajax({
-				url: 'constraint',
-				type: 'DELETE',
-				data: {
-					portfolio_id: 1,
-					id: [39, 40]
-				},
-				success: function(response) {
-					console.log(response);
-				}
-			});
+			// $.ajax({
+			// 	url: 'contract',
+			// 	type: 'PUT',
+			// 	data: {
+			// 		id: 14,
+			// 		name: 'whooo3',
+			// 		return_value: 12
+			// 	},
+			// 	success: function(response) {
+			// 		console.log(response);
+			// 	}
+			// });
+			// $.ajax({
+			// 	url: 'constraint',
+			// 	type: 'PUT',
+			// 	data: opt,
+			// 	success: function(response) {
+			// 		console.log(response);
+			// 	}
+			// });
 			// $.post('constraint', opt, function(response) {
 			// 	console.log(response);
 			// });
