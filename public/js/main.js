@@ -9,6 +9,9 @@ define([
 	'views/SideBar',
 	'rsvp',
 	'bootstrap-dialog', //TODO: lame since its a global
+	'react',
+	'jsx!react-components/ConstraintEdit',
+	'JSXTransformer',
 	'bootstrap-select',
 	"jquery-form",
 	"fileinput",
@@ -24,14 +27,18 @@ define([
 	NewContractView,
 	SideBar,
 	RSVP,
-	BootstrapDialog
+	BootstrapDialog,
+	React,
+	ConstraintEdit
 ) {
 
+	ConstraintEdit.render('testreact');
 	var _portfolioView = new PortfolioView({
 		onNewContractClicked: newContractHandler,
 		onDeleteContractClicked: deleteContractHandler,
 		onChangePortfolioName: changePortfolioName,
-		onDeletePortfolio: deletePortfolio
+		onDeletePortfolio: deletePortfolio,
+		onNewConstraintClicked: newConstraintHandler
 	});
 	var _newContractView = new NewContractView({
 		onCreateNewContract: createNewContractHandler
@@ -215,6 +222,8 @@ define([
 			_portfolioView.setContracts(contracts);
 			$('.loading').hide();
 		});
+	}
+	function newConstraintHandler() {
 	}
 /*
 

@@ -18,6 +18,45 @@ define([
 					reject(response.error);
 				}
 			});
+			var opt = {
+				// portfolio_id: pId,
+				id: 37,
+				target_tvar_threshold: 33,
+				total_size: 11,
+				contract_constraint: [
+					{
+						contract_id: 1,
+						max_investment: 5,
+						min_investment: 0
+					}
+				],
+				geography_constraint: [
+					{
+						geography: "fds",
+						max_investment: 1,
+						min_investment: 0
+					},
+					{
+						geography: 2,
+						max_investment: 1,
+						min_investment: 22
+					}
+				]
+			};
+			$.ajax({
+				url: 'constraint',
+				type: 'DELETE',
+				data: {
+					portfolio_id: 1,
+					id: [39, 40]
+				},
+				success: function(response) {
+					console.log(response);
+				}
+			});
+			// $.post('constraint', opt, function(response) {
+			// 	console.log(response);
+			// });
 		});
 		return promise;
 	}

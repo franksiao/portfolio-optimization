@@ -1,23 +1,5 @@
 var Queries = require('./Queries.js');
-var standardSuccessHandler = function(res) {
-	return function success(result) {
-		var obj = {
-			status: 'success'
-		}
-		if (result.data && Array.isArray(result.data) && result.data.length) {
-			obj.data = result.data[0];
-		}
-		res.send(obj);
-	}
-}
-var standardFailureHandler = function(res) {
-	return function failure(err) {
-		res.send({
-			status: 'failed',
-			error: err
-		});
-	}
-}
+var ApiUtils = require('./ApiUtils');
 
 exports.setup = function(router, connection) {
 	router.get('/portfolios', function(req, res, next) {
@@ -26,7 +8,7 @@ exports.setup = function(router, connection) {
 			id: req.query.id
 		};
 		Queries.getPortfolios(params)
-		.then(standardSuccessHandler(res), standardFailureHandler(res));
+		.then(ApiUtils.DefaultApiSuccessHandler(res), ApiUtils.DefaultApiFailureHandler(res));
 	});
 
 	router.post('/portfolio', function(req, res, next) {
@@ -38,7 +20,7 @@ exports.setup = function(router, connection) {
 				status: 'success',
 				data: result
 			});
-		}, standardFailureHandler(res));
+		}, ApiUtils.DefaultApiFailureHandler(res));
 	});
 
 	router.put('/portfolio', function(req, res, next) {
@@ -51,7 +33,7 @@ exports.setup = function(router, connection) {
 				status: 'success',
 				data: result
 			});
-		}, standardFailureHandler(res));
+		}, ApiUtils.DefaultApiFailureHandler(res));
 	});
 	router.delete('/portfolio', function(req, res, next) {
 		var portfolioId = req.body.id;
@@ -68,7 +50,7 @@ exports.setup = function(router, connection) {
 				portfolio_id: portfolioId
 			}).then(Queries.deleteContracts)
 			.then(Queries.deletePortfolio)
-			.then(standardSuccessHandler(res), standardFailureHandler(res));
+			.then(ApiUtils.DefaultApiSuccessHandler(res), ApiUtils.DefaultApiFailureHandler(res));
 			//TODO: deleting Constraints
 		});
 	});

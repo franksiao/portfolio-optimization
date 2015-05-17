@@ -7,7 +7,7 @@ define([
 ) {
 	function _getAllPortfolios() {
 		var promise = new RSVP.Promise(function(resolve, reject) {
-			$.get( "portfolios", function(data) {
+			$.get( "portfolios", {'blah': 'blah'}, function(data) {
 				resolve(data);
 			});
 		});

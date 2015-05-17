@@ -10,7 +10,10 @@ requirejs.config({
       'text': 'lib/require_text',
       'x-editable': 'lib/bootstrap-editable',
       'bootstrap-dialog': 'lib/bootstrap-dialog',
-      'bootstrap-select': 'lib/bootstrap-select'
+      'bootstrap-select': 'lib/bootstrap-select',
+      'react': 'lib/react/build/react-with-addons',
+      'JSXTransformer': 'lib/react/build/JSXTransformer',
+      'jsx': 'lib/react/build/jsx'
     },
     'shim': {
         'jquery-form': {

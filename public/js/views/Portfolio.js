@@ -17,6 +17,7 @@ define([
 		var _onDeleteContractClicked = params.onDeleteContractClicked || function() {};
 		var _onChangePortfolioName = params.onChangePortfolioName || function() {};
 		var _onDeletePortfolio = params.onDeletePortfolio || function() {};
+		var _onNewConstraintClicked = params.onNewConstraintClicked || function() {};
 		var _$root = $(html);
 
 		var _$name = _$root.find('#portfolio-name');
@@ -30,6 +31,7 @@ define([
 		var _$newConstraint = _$root.find('#new-constraint');
 		var _$editConstraint = _$root.find('#edit-constraint');
 		var _$deleteConstraint = _$root.find('#delete-constraint');
+
 
 		function _init() {
 			_$name.editable({
@@ -107,6 +109,7 @@ define([
 				});*/
 			});
 			_$root.find('#delete-portfolio').on('click', _onDeletePortfolio);
+			_$newConstraint.on('click', _onNewConstraintClicked);
 		}
 
 		function _setContracts(contracts) {

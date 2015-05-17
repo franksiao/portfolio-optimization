@@ -1,29 +1,12 @@
 var Queries = require('./Queries.js');
+var ApiUtils = require('./ApiUtils');
 var _ = require("underscore");
 var fs = require('fs');
 var csvtojson = require("csvtojson");
-var Promise = require('promise');
-var pReadFile = Promise.denodeify(fs.readFile);
+// var Promise = require('promise');
+var RSVP = require('rsvp');
 
-var standardSuccessHandler = function(res) {
-	return function success(result) {
-		var obj = {
-			status: 'success'
-		}
-		if (result.data && Array.isArray(result.data) && result.data.length) {
-			obj.data = result.data[0];
-		}
-		res.send(obj);
-	}
-}
-var standardFailureHandler = function(res) {
-	return function failure(err) {
-		res.send({
-			status: 'failed',
-			error: err
-		});
-	}
-}
+var pReadFile = RSVP.denodeify(fs.readFile);
 
 var getResourceFile = function(resource_id) {
 	var path = 'uploads/' + resource_id + '.csv';
@@ -31,7 +14,7 @@ var getResourceFile = function(resource_id) {
 }
 var deleteResourceFile = function(resource_id) {
 	var path = 'uploads/' + resource_id + '.csv';
-	return (new Promise(function(resolve, reject) {
+	return (new RSVP.Promise(function(resolve, reject) {
 		fs.unlink(path, function(err) {
 			if (err) {
 				reject(err);
@@ -43,7 +26,7 @@ var deleteResourceFile = function(resource_id) {
 }
 
 var convertDataToJson = function(data) {
-	return (new Promise(function(resolve,reject) {
+	return (new RSVP.Promise(function(resolve,reject) {
 		var converter = new csvtojson.core.Converter();
 		converter.fromString(data, function(err, json) {
 			if (err) {
@@ -57,15 +40,37 @@ var convertDataToJson = function(data) {
 
 exports.setup = function(router, connection) {
 	router.get('/contracts', function(req, res, next) {
+		console.log(req.query);
 		var params = {
 			db_connection: connection,
 			contract_ids: req.query.ids,
 			portfolio_id: req.query.portfolio_id
 		}
 		Queries.getContracts(params)
-		.then(standardSuccessHandler(res), standardFailureHandler(res));
+		.then(ApiUtils.DefaultApiSuccessHandler(res), ApiUtils.DefaultApiFailureHandler(res));
 	});
 
+	router.put('/contract', function(req, res, next) {
+		var contractId = req.body.id;
+		var contractName = req.body.name;
+		var return_val = req.body.return;
+		console.log(req.body);
+		if (contractId) {
+			var params = {
+				db_connection: connection,
+				id: contractId,
+				name: contractName,
+				'return': return_val
+			};
+			Queries.updateContract(params)
+			.then(ApiUtils.DefaultApiSuccessHandler(res),ApiUtils.DefaultApiFailureHandler(res));
+		} else {
+			res.send({
+				status: 'failed',
+				error: 'No contract id specified'
+			});
+		}
+	});
 	router.delete('/contracts', function(req, res, next) {
 		var contractIds = req.body.ids;
 		if (contractIds && contractIds.length > 0) {
@@ -76,7 +81,7 @@ exports.setup = function(router, connection) {
 			//TODO: getconstraints with constraint target matching? or not
 			Queries.deleteSimulations(params)
 			.then(Queries.deleteContracts)
-			.then(standardSuccessHandler(res),standardFailureHandler(res));
+			.then(ApiUtils.DefaultApiSuccessHandler(res),ApiUtils.DefaultApiFailureHandler(res));
 		} else {
 			res.send({
 				status: 'failed',
@@ -123,7 +128,7 @@ exports.setup = function(router, connection) {
 		});
 
 		function createContractHandler(simulations) {
-			return (new Promise(function(resolve,reject) {
+			return (new RSVP.Promise(function(resolve,reject) {
 				Queries.insertContract({
 					db_connection: connection,
 					name: name,
@@ -140,7 +145,7 @@ exports.setup = function(router, connection) {
 			}));
 		}
 		function createSimulationHandler(data) {
-			return (new Promise(function(resolve,reject) {
+			return (new RSVP.Promise(function(resolve,reject) {
 				var formattedSimulations = [];
 				_.each(data.simulations, function(value, key) {
 					formattedSimulations.push([

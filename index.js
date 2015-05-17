@@ -1,15 +1,18 @@
 var express = require("express");
 var mysql = require('mysql');
 var bodyParser = require("body-parser");
+var expressValidator = require('express-validator');
+var RSVP = require('rsvp');
+
 var config = require('./config.json');
 var app = express();
 var PortfolioApi = require('./app/PortfolioApi.js');
 var ContractApi = require('./app/ContractApi.js');
 var FileUploadApi = require('./app/FileUploadApi.js');
+var ConstraintApi = require('./app/ConstraintApi.js');
 
 //promise helpers
-var Promise = require('promise');
-
+var ApiUtils = require('./app/ApiUtils');
 var Queries = require('./app/Queries.js');
 
 var connection;
@@ -35,12 +38,18 @@ function initialize() {
 			startServer();
 		}
 	});
+	RSVP.on('error', function(reason) {
+		console.error(reason);
+	});
 };
 
 function setupServer() {
 
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(bodyParser.json());
+	app.use(expressValidator({
+		customValidators: ApiUtils.CustomValidators
+	}));
 	app.use(express.static(__dirname + '/public'));
 
 	var router = express.Router();
@@ -49,6 +58,7 @@ function setupServer() {
 	FileUploadApi.setup(router, connection);
 	PortfolioApi.setup(router, connection);
 	ContractApi.setup(router, connection);
+	ConstraintApi.setup(router, connection);
 }
 
 function startServer() {
@@ -114,7 +124,7 @@ app.get('/results', function(req, res, next) {
 
 function clearTable(tbl) {
 	return function() {
-		var promise = new Promise(function(resolve,reject) {
+		var promise = new RSVP.Promise(function(resolve,reject) {
 			console.log('Clearing table ', tbl);
 			var q = connection.query('TRUNCATE TABLE ' + tbl, function(err, result) {
 				if (err) {

@@ -21,8 +21,9 @@
     "multer": "~0.1.6",
     "mysql": "^2.5.4",
     "csvtojson": "~0.3.19",
-    "promise": "~6.1.0",
+    "rsvp": "~3.0.18",
     "underscore": "~1.8.3",
-    "body-parser": "~1.12.3"
+    "body-parser": "~1.12.3",
+    "express-validator": "~2.10.0"
   }
 }
