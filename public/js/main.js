@@ -32,7 +32,10 @@ define([
 	ConstraintEdit
 ) {
 
-	ConstraintEdit.render('testreact');
+	// ConstraintEdit.render('testreact');
+	var _constraintEditView = new ConstraintEdit({
+		container_id: 'constraint-edit-container'
+	});
 	var _portfolioView = new PortfolioView({
 		onNewContractClicked: newContractHandler,
 		onDeleteContractClicked: deleteContractHandler,
@@ -224,6 +227,78 @@ define([
 		});
 	}
 	function newConstraintHandler() {
+		console.log('new constraint');
+		_constraintEditView.setData({
+			portfolio: {
+				id: 1,
+				name: 'EEEE'
+			},
+			geography: ['GeoA', 'GeoB'],
+			contract: [{
+				id: 1,
+				name: 'Alpha'
+			},
+			{
+				id: 2,
+				name: 'Beta'
+			},
+			{
+				id: 3,
+				name: 'Gamma'
+			},
+			{
+				id: 4,
+				name: 'Delta'
+			},
+			{
+				id: 5,
+				name: 'Epsilon'
+			},
+			{
+				id: 6,
+				name: 'Psi'
+			}],
+			constraint: {
+				id: 1,
+				name: 'test constraint',
+				portfolio_id: 4,
+				target_return: null,
+				target_tvar_threshold: null,
+				total_size: 11,
+				contract_constraint: [
+					{
+						max_investment: 3,
+						min_investment: 1,
+						contract_id: 1
+					},
+					{
+						max_investment: 3,
+						min_investment: 1,
+						contract_id: 2
+					},
+					{
+						max_investment: 1,
+						min_investment: null,
+						contract_id: 3
+					},
+					{
+						max_investment: 20,
+						min_investment: 11,
+						contract_id: 4
+					}
+				],
+				geography_constraint: [
+					{
+						max_investment: 11,
+						min_investment: 10,
+						geography: 'GeoA'
+					}
+				]
+			}
+		});
+		$('#constraint-edit-modal').modal({
+			keyboard: false
+		});
 	}
 /*
 

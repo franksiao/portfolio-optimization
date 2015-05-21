@@ -9,18 +9,19 @@ define([
 ) {
 	function getConstraints(pId) {
 		var promise = new RSVP.Promise(function(resolve, reject) {
-			$.get('constraints', {portfolio_id: pId}, function(response) {
-				if (response.status === 'success') {
-					console.log(response);
-					resolve(_formatConstraints(response.data));
-				} else {
-					console.assert(response.status, response.error);
-					reject(response.error);
-				}
+			$.get('constraint', {portfolio_id: pId}, function(response) {
+				console.log(response.data);
+				resolve(response.data);
+				// if (response.status === 'success') {
+				// 	console.log(response);
+				// 	resolve(_formatConstraints(response.data));
+				// } else {
+				// 	console.assert(response.status, response.error);
+				// 	reject(response.error);
+				// }
 			});
 			var opt = {
-				// id: 44,
-				portfolio_id: 2,
+				portfolio_id: 4,
 				name:'test',
 				total_size: 123,
 				contract_constraint: [

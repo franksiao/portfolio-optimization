@@ -19,3 +19,28 @@ body {
 { 
 	outline: none;
 }
+#constraint-edit-container .form-inline {
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+#constraint-edit-container .checkbox {
+	margin-top: 5px;
+}
+
+#constraint-edit-container .delete-constraint-group {
+	margin-left: 5px;
+	margin-top: -3px;
+}
+
+#constraint-edit-container .delete-constraint-group:focus {
+	outline: none;
+}
+
+#constraint-edit-container .group-names {
+	font-weight: normal;
+	font-style: italic;
+}
+#bambam-analytics button:focus {
+	outline: none;
+};
