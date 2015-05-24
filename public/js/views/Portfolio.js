@@ -7,7 +7,6 @@ define([
 	_,
 	html
 ) {
-	
 	function PortfolioView(params) {
 		params = params || {};
 		var _name = params.name || '(Set Portfolio Name)';
@@ -19,6 +18,7 @@ define([
 		var _onDeletePortfolio = params.onDeletePortfolio || function() {};
 		var _onNewConstraintClicked = params.onNewConstraintClicked || function() {};
 		var _onEditConstraintClicked = params.onEditConstraintClicked || function() {};
+		var _onDeleteConstraintClicked = params.onDeleteConstraintClicked || function() {};
 
 		var _$root = $(html);
 
@@ -105,6 +105,7 @@ define([
 					_$deleteConstraint.enable(false);
 				}
 			});
+
 			_$root.find('#run-r').on('click', function(e) {
 				console.log('run');
 				/*
@@ -119,6 +120,17 @@ define([
 			_$editConstraint.on('click', function() {
 				var selected = _$associatedConstraints.val();
 				_onEditConstraintClicked(selected[0]);
+			});
+
+			_$deleteConstraint.on('click', function() {
+				var constraintsToDelete = [];
+				_$associatedConstraints.val().forEach(function(cId) {
+					constraintsToDelete.push({
+						id: cId,
+						name: _constraints[cId].name
+					})
+				});
+				_onDeleteConstraintClicked(constraintsToDelete);
 			});
 		}
 

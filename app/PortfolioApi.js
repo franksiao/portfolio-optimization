@@ -11,7 +11,6 @@ var _ = require('underscore');
 
 exports.setup = function(router) {
 	router.get('/portfolio', function(req, res, next) {
-		console.log(arguments);
 		var connection = req.connection;
 		req.checkQuery('id', 'Invalid id').optional().isValidId();
 		if (ApiUtils.handleError(req,res)) {

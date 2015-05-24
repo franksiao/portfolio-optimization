@@ -8,6 +8,20 @@ define([
 	_
 ) {
 	var _constraintsByPortfioIds = {};
+
+	function deleteConstraint(portfolioId, constraintIds) {
+		return (new RSVP.Promise(function(resolve, reject) {
+			$.ajax({
+				url: 'constraint',
+				type: 'DELETE',
+				data: {id: constraintIds, portfolio_id: portfolioId}
+			}).done(function() {
+				resolve();
+			}).fail(function(err) {
+				reject(err);
+			});
+		}));
+	}
 	function putConstraint(portfolioId, constraintId, constraint) {
 		return (new RSVP.Promise(function(resolve, reject) {
 			constraint.portfolio_id = portfolioId;
@@ -102,6 +116,7 @@ define([
 		putConstraint: putConstraint,
 		getConstraintsByPortfolio: getConstraintsByPortfolio,
 		getConstraintById: getConstraintById,
-		getDefaultConstraintValues: getDefaultConstraintValues
+		getDefaultConstraintValues: getDefaultConstraintValues,
+		deleteConstraint: deleteConstraint
 	};
 });

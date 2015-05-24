@@ -42,8 +42,10 @@ define([
 		onChangePortfolioName: changePortfolioName,
 		onDeletePortfolio: deletePortfolio,
 		onNewConstraintClicked: newConstraintHandler,
-		onEditConstraintClicked: editConstraintHandler
+		onEditConstraintClicked: editConstraintHandler,
+		onDeleteConstraintClicked: deleteConstraintHandler
 	});
+
 	var _newContractView = new NewContractView({
 		onCreateNewContract: createNewContractHandler
 	});
@@ -279,6 +281,27 @@ define([
 			$('#constraint-edit-modal').modal({
 				backdrop: false
 			});
+		});
+	}
+
+	function deleteConstraintHandler(constraints) {
+		var constraintNames = _.pluck(constraints, 'name');
+		var constraintIds = _.pluck(constraints, 'id');
+
+		BootstrapDialog.confirm({
+			title: 'Are you sure you want to delete the following constraint(s)?',
+			message: constraintNames.join(' ,'),
+			btnOKLabel: 'Delete',
+			callback: function(confirmed) {
+				if (confirmed) {
+					ConstraintModel.deleteConstraint(_currentPortfolioId, constraintIds).then(function() {
+						return ConstraintModel.getConstraintsByPortfolio(_currentPortfolioId, true);
+					}).then(function(constraints) {
+						_portfolioView.setConstraints(constraints);
+						$('.loading').hide();
+					});
+				}
+			}
 		});
 	}
 

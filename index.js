@@ -17,9 +17,6 @@ var ConnectionManager = require('./app/ConnectionManager.js');
 //promise helpers
 var ApiUtils = require('./app/ApiUtils');
 
-var connection;
-var server;
-
 //http://codeforgeek.com/2015/03/restful-api-node-and-express-4/
 function initialize() {
 	RSVP.on('error', function(reason) {
@@ -49,7 +46,7 @@ function setupRoutes() {
 }
 
 function startServer() {
-	server = app.listen(3001, function() {
+	app.listen(3001, function() {
 		console.log('Server Started');
 	});
 }

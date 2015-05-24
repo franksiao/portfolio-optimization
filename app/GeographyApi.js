@@ -1,7 +1,6 @@
 var GeographyQuery = require('./query/GeographyQuery.js');
 var ApiUtils = require('./ApiUtils');
 
-
 exports.setup = function(router) {
 	router.get('/geography', function(req, res, next) {
 		var connection = req.connection;
