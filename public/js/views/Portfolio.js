@@ -18,6 +18,8 @@ define([
 		var _onChangePortfolioName = params.onChangePortfolioName || function() {};
 		var _onDeletePortfolio = params.onDeletePortfolio || function() {};
 		var _onNewConstraintClicked = params.onNewConstraintClicked || function() {};
+		var _onEditConstraintClicked = params.onEditConstraintClicked || function() {};
+
 		var _$root = $(html);
 
 		var _$name = _$root.find('#portfolio-name');
@@ -92,7 +94,11 @@ define([
 			_$associatedConstraints.on('change', function(event) {
 				var selected = _$associatedConstraints.val();
 				if (selected && selected.length) {
-					_$editConstraint.enable();
+					if (selected.length === 1) {
+						_$editConstraint.enable();
+					} else {
+						_$editConstraint.enable(false);
+					}
 					_$deleteConstraint.enable();
 				} else {
 					_$editConstraint.enable(false);
@@ -110,6 +116,10 @@ define([
 			});
 			_$root.find('#delete-portfolio').on('click', _onDeletePortfolio);
 			_$newConstraint.on('click', _onNewConstraintClicked);
+			_$editConstraint.on('click', function() {
+				var selected = _$associatedConstraints.val();
+				_onEditConstraintClicked(selected[0]);
+			});
 		}
 
 		function _setContracts(contracts) {
@@ -149,7 +159,6 @@ define([
 		}
 		this.setPortfolioName = function(name) {
 			_name = name;
-			// _$name.html(name);
 			_$name.editable('setValue', name);
 		}
 

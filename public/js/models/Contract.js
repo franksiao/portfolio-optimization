@@ -7,70 +7,80 @@ define([
 	RSVP,
 	_
 ) {
-	function getContracts(pId) {
-		var promise = new RSVP.Promise(function(resolve, reject) {
-			$.get('contract', {portfolio_id: pId}, function(response) {
-				if (response.status === 'success') {
-					resolve(_formatContracts(response.data));
-				} else {
-					console.assert(response.status, response.error);
-					reject(response.error);
-				}
-			});
-		});
-		return promise;
-	}
-	function _formatContracts(data) {
-		var formattedContracts = {};
-		data.forEach(function(contract) {
-			formattedContracts[contract.id] = {
-				name: contract.name
-			};
-		});
-		return formattedContracts;
-	}
-	function deleteContracts(cIds, portfolio_id) {
-		console.log('delete contracts', cIds);
-		var promise = new RSVP.Promise(function(resolve, reject) {
+	function putContract(portfolioId, contract) {
+		return (new RSVP.Promise(function(resolve, reject) {
+			contract.portfolio_id = portfolioId;
 			$.ajax({
 				url: 'contract',
-				type: 'DELETE',
-				data: {id: cIds, portfolio_id: portfolio_id}
-			}).done(function(response) {
-				if (response.status === 'success') {
-					console.log(response);
-					resolve();
-				} else {
-					console.assert(response.status, response.error);
-					reject(response.error);
-				}
-			}).fail(function(jqXHR) {
-				console.log(jqXHR.responseJSON.error);
+				type: 'PUT',
+				data: contract
+			}).done(function() {
+				resolve();
+			}).fail(function(err) {
+				reject(err);
 			});
-		});
-		return promise;
+		}));
 	}
-	function createContract(params) {
+	function deleteContract(portfolioId, contractIds) {
 		return (new RSVP.Promise(function(resolve, reject) {
 			$.ajax({
 				url: 'contract',
-				type: 'POST',
-				data: params,
-				success: function(response) {
-					if (response.status === 'success') {
-						resolve();
-					} else {
-						console.assert(response.status, response.error);
-						reject(response.error);
-					}
-				}
+				type: 'DELETE',
+				data: {id: contractIds, portfolio_id: portfolioId}
+			}).done(function() {
+				resolve();
+			}).fail(function(err) {
+				reject(err);
 			});
 		}));
 	}
 
+	function postContract(portfolioId, contract) {
+		return (new RSVP.Promise(function(resolve, reject) {
+			contract.portfolio_id = portfolioId
+			$.ajax({
+				url: 'contract',
+				type: 'POST',
+				data: contract
+			}).done(function() {
+				resolve();
+			}).fail(function(err) {
+				reject(err);
+			});
+		}));
+	}
+
+	_contractsByPortfolioIds = {};
+	function getContractsByPortfolio(portfolioId, refetch) {
+		if (!refetch && _contractsByPortfolioIds[portfolioId]) {
+			return RSVP.Promise.resolve(_contractsByPortfolioIds[portfolioId]);
+		}
+		return (new RSVP.Promise(function(resolve, reject) {
+			$.ajax({
+				url: 'contract',
+				type: 'GET',
+				data: {portfolio_id: portfolioId}
+			}).done(function(response) {
+				_contractsByPortfolioIds[portfolioId] = _formatContracts(response.data);
+				resolve(_contractsByPortfolioIds[portfolioId]);
+			}).fail(function(err) {
+				reject(err);
+			});
+		}));
+	}
+
+	function _formatContracts(data) {
+		var formattedContracts = {};
+		data.forEach(function(contract) {
+			formattedContracts[contract.id] = contract;
+		});
+		return formattedContracts;
+	}
+
 	return {
-		getContracts: getContracts,
-		deleteContracts: deleteContracts,
-		createContract: createContract
+		getContractsByPortfolio: getContractsByPortfolio,
+		deleteContract: deleteContract,
+		postContract: postContract,
+		putContract: putContract
 	};
 });

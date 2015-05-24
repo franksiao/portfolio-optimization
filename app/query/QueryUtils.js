@@ -13,9 +13,7 @@ exports.standardSelectPromise = function(connection, query) {
 			}
 		});
 		console.log(q.sql)
-	})).catch(function(reason) {
-		console.log('Error at standardSelectPromise', reason);
-	});
+	}));
 }
 exports.standardDeletePromise = function(connection, query) {
 	return (new RSVP.Promise(function(resolve,reject) {
@@ -30,9 +28,7 @@ exports.standardDeletePromise = function(connection, query) {
 			}
 		});
 		console.log(q.sql)
-	})).catch(function(reason) {
-		console.log('Error at standardDeletePromise', reason);
-	});
+	}));
 }
 exports.standardInsertPromise = function(connection, query, set) {
 	return (new RSVP.Promise(function(resolve,reject) {
@@ -48,9 +44,7 @@ exports.standardInsertPromise = function(connection, query, set) {
 			}
 		});
 		console.log(q.sql)
-	})).catch(function(reason) {
-		console.log('Error at standardInsertPromise', reason);
-	});
+	}));
 }
 exports.standardMultiInsertPromise = function(connection, query, sets) {
 	return (new RSVP.Promise(function(resolve,reject) {
@@ -65,7 +59,5 @@ exports.standardMultiInsertPromise = function(connection, query, sets) {
 			}
 		});
 		console.log(q.sql)
-	})).catch(function(reason) {
-		console.log('Error at standardMultiInsertPromise', reason);
-	});
+	}));
 }

@@ -5,7 +5,9 @@
   border-radius: 5px;
   padding: 5px;
 }
-
+.portfolio-content {
+	margin: 10px;
+}
 #portfolio-name {
 	display: inline;
 }
@@ -40,6 +42,15 @@ body {
 #constraint-edit-container .group-names {
 	font-weight: normal;
 	font-style: italic;
+}
+#constraint-edit-container input.constraint-name {
+	margin-left: 5px;
+}
+#constraint-edit-container input.constraint-name {
+	margin-left: 5px;
+}
+#constraint-edit-container .form-group {
+	margin-top: 10px;
 }
 #bambam-analytics button:focus {
 	outline: none;

@@ -1,6 +1,5 @@
 var multer = require('multer');
-
-exports.setup = function(router, connection) {
+exports.setup = function(router) {
 	router.use(multer({
 		dest: './uploads/',
 		rename: function (fieldname, filename) {
@@ -12,6 +11,7 @@ exports.setup = function(router, connection) {
 	}));
 
 	router.post('/upload-object', function(req, res) {
+		var connection = req.connection;
 		var file = req.files.contract_file;
 		var resource_id = file.name.substr(0, file.name.lastIndexOf('.')) || file.name;
 		res.send({

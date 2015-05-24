@@ -31,10 +31,7 @@ exports.DefaultApiSuccessHandler = function(res) {
 }
 exports.DefaultApiFailureHandler = function(res) {
 	return function failure(err) {
-		res.send({
-			status: 'failed',
-			error: err
-		});
+		res.status(500).send(err);
 	}
 }
 exports.CustomValidators = {
@@ -70,7 +67,8 @@ exports.CustomValidators = {
 			}
 		});
 		return isValid;
-	}
+	},
+	isValidString: isValidString
 };
 
 exports.formatId = function(id) {

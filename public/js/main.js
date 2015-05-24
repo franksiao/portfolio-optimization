@@ -4,11 +4,11 @@ define([
 	"models/Portfolio",
 	"models/Contract",
 	"models/Constraint",
+	'models/Geography',
 	'views/Portfolio',
 	'views/NewContract',
-	'views/SideBar',
 	'rsvp',
-	'bootstrap-dialog', //TODO: lame since its a global
+	'bootstrap-dialog',
 	'react',
 	'jsx!react-components/ConstraintEdit',
 	'JSXTransformer',
@@ -23,25 +23,26 @@ define([
 	PortfolioModel,
 	ContractModel,
 	ConstraintModel,
+	GeographyModel,
 	PortfolioView,
 	NewContractView,
-	SideBar,
 	RSVP,
 	BootstrapDialog,
 	React,
 	ConstraintEdit
 ) {
 
-	// ConstraintEdit.render('testreact');
 	var _constraintEditView = new ConstraintEdit({
-		container_id: 'constraint-edit-container'
+		container_id: 'constraint-edit-container',
+		onSaveConstraint: _onSaveConstraintHandler
 	});
 	var _portfolioView = new PortfolioView({
 		onNewContractClicked: newContractHandler,
 		onDeleteContractClicked: deleteContractHandler,
 		onChangePortfolioName: changePortfolioName,
 		onDeletePortfolio: deletePortfolio,
-		onNewConstraintClicked: newConstraintHandler
+		onNewConstraintClicked: newConstraintHandler,
+		onEditConstraintClicked: editConstraintHandler
 	});
 	var _newContractView = new NewContractView({
 		onCreateNewContract: createNewContractHandler
@@ -56,6 +57,7 @@ define([
 
 	RSVP.on('error', function(reason) {
 		console.assert(false, reason);
+		console.log(reason.stack);
 	});
 
 	_loadPage();
@@ -74,15 +76,15 @@ define([
 			_$portfolioSelectContainer.append(_$portfolioSelect);
 			//get portfolio
 			PortfolioModel.getAllPortfolios().then(function(portfolios) {
-				portfolios.data.forEach(function(port) {
+				portfolios.forEach(function(port) {
 					_portfolioMapping[port.id] = port.name;
 					_$portfolioSelect.append($('<option value="' + port.id + '">' + port.name + '</option>'));
 				});
 				_$portfolioSelect.selectpicker();
 
-				if (portfolios.data.length && !_currentPortfolioId) {
+				if (portfolios.length && !_currentPortfolioId) {
 					//pick first one as default
-					_currentPortfolioId = portfolios.data[0].id;
+					_currentPortfolioId = portfolios[0].id;
 				}
 				if (_currentPortfolioId) {
 					_$portfolioSelect.selectpicker('val', _currentPortfolioId);
@@ -116,7 +118,7 @@ define([
 				if (confirmed) {
 					var name = $('#new-portfolio-name').val();
 					if (name && name.length > 0) {
-						PortfolioModel.createNewPortfolio(name).then(function(portfolioId) {
+						PortfolioModel.postPortfolio(name).then(function(portfolioId) {
 							_currentPortfolioId = portfolioId;
 							_loadPage();
 							//TODO:reload and set new portfolio
@@ -132,18 +134,18 @@ define([
 	function _loadPortfolioView() {
 		if (_currentPortfolioId) {
 			_portfolioView.setPortfolioName(_portfolioMapping[_currentPortfolioId]);
-			ContractModel.getContracts(_currentPortfolioId).then(function(contracts) {
+			ContractModel.getContractsByPortfolio(_currentPortfolioId).then(function(contracts) {
 				_portfolioView.setContracts(contracts);
 				console.log(contracts);
-				ConstraintModel.getConstraints(_currentPortfolioId).then(function(constraints) {
+				ConstraintModel.getConstraintsByPortfolio(_currentPortfolioId).then(function(constraints) {
 					console.log(constraints);
 					_portfolioView.setConstraints(constraints);
-					$('#page-content-wrapper').append(_portfolioView.get$Root());
+					$('#main-content').append(_portfolioView.get$Root());
 					$('.loading').hide();
 				});
 			});
 		} else {
-			$('#page-content-wrapper').append($('<div>Please create a portfolio.</div>'));
+			$('#main-content').append($('<div>Please create a portfolio.</div>'));
 			$('.loading').hide();
 		}
 	}
@@ -155,7 +157,7 @@ define([
 		_$currentModalContent = _newContractView.get$Root();
 		$('#page-modal .modal-dialog').html(_$currentModalContent);
 		$('#page-modal').modal({
-			keyboard: false
+			backdrop: false
 		});
 	}
 
@@ -169,8 +171,8 @@ define([
 			btnOKLabel: 'Delete',
 			callback: function(confirmed) {
 				if (confirmed) {
-					ContractModel.deleteContracts(contractIds, _currentPortfolioId).then(function() {
-						return ContractModel.getContracts(_currentPortfolioId);
+					ContractModel.deleteContract(_currentPortfolioId, contractIds).then(function() {
+						return ContractModel.getContractsByPortfolio(_currentPortfolioId, true);
 					}).then(function(contracts) {
 						_portfolioView.setContracts(contracts);
 						$('.loading').hide();
@@ -200,7 +202,7 @@ define([
 
 	function changePortfolioName(name) {
 		return (new RSVP.Promise(function(resolve, reject) {
-			PortfolioModel.changePortfolioName(_currentPortfolioId, name).then(function(result) {
+			PortfolioModel.putPortfolio({id: _currentPortfolioId, name: name}).then(function(result) {
 				console.log('update name to', result.name);
 				_loadPortfolioSelect().then(resolve, reject)
 			}, function() {
@@ -212,115 +214,79 @@ define([
 	function createNewContractHandler(contract_data) {
 		$('.loading').show();
 		$('#page-modal').modal('hide');
-		var params = {
+		var contract = {
 			name: contract_data.name,
 			resource_id: contract_data.resource_id,
-			portfolio_id: _currentPortfolioId,
 			type: 'AIR', //hard code for now
 			return_value: contract_data.return
 		};
-		ContractModel.createContract(params).then(function() {
-			return ContractModel.getContracts(_currentPortfolioId);
+		ContractModel.postContract(_currentPortfolioId, contract).then(function() {
+			return ContractModel.getContractsByPortfolio(_currentPortfolioId, true);
 		}).then(function(contracts) {
 			_portfolioView.setContracts(contracts);
 			$('.loading').hide();
 		});
 	}
 	function newConstraintHandler() {
-		console.log('new constraint');
-		_constraintEditView.setData({
-			portfolio: {
-				id: 1,
-				name: 'EEEE'
-			},
-			geography: ['GeoA', 'GeoB'],
-			contract: [{
-				id: 1,
-				name: 'Alpha'
-			},
-			{
-				id: 2,
-				name: 'Beta'
-			},
-			{
-				id: 3,
-				name: 'Gamma'
-			},
-			{
-				id: 4,
-				name: 'Delta'
-			},
-			{
-				id: 5,
-				name: 'Epsilon'
-			},
-			{
-				id: 6,
-				name: 'Psi'
-			}],
-			constraint: {
-				id: 1,
-				name: 'test constraint',
-				portfolio_id: 4,
-				target_return: null,
-				target_tvar_threshold: null,
-				total_size: 11,
-				contract_constraint: [
-					{
-						max_investment: 3,
-						min_investment: 1,
-						contract_id: 1
-					},
-					{
-						max_investment: 3,
-						min_investment: 1,
-						contract_id: 2
-					},
-					{
-						max_investment: 1,
-						min_investment: null,
-						contract_id: 3
-					},
-					{
-						max_investment: 20,
-						min_investment: 11,
-						contract_id: 4
-					}
-				],
-				geography_constraint: [
-					{
-						max_investment: 11,
-						min_investment: 10,
-						geography: 'GeoA'
-					}
-				]
-			}
-		});
-		$('#constraint-edit-modal').modal({
-			keyboard: false
+		var promises = [
+			ConstraintModel.getDefaultConstraintValues(),
+			GeographyModel.getGeographiesByPortfolio(_currentPortfolioId),
+			ContractModel.getContractsByPortfolio(_currentPortfolioId)
+		];
+		RSVP.all(promises).then(function(data) {
+			console.log(data);
+			_constraintEditView.update({
+				contract: _.values(data[2]),
+				portfolio: {
+					name: _portfolioMapping[_currentPortfolioId],
+					id: _currentPortfolioId
+				},
+				geography: data[1],
+				constraint: data[0]
+			});
+			$('#constraint-edit-modal').modal({
+				backdrop: false
+			});
 		});
 	}
-/*
 
-	$.get( "results", function(data) {
-		console.log(data);
-		$('.result-code').append(JSON.stringify(data, null, 2));
-	});
-
-	$('#run-r').on('click', function(e) {
-		console.log('run');
-		$.post('//ec2-52-0-86-122.compute-1.amazonaws.com/ocpu/library/opt/opt_test.R', function(data) {
-			console.log('post return');
-		}).done(function() {
-			console.log('done');
+	function _onSaveConstraintHandler(constraint, id) {
+		console.log(constraint);
+		$('#constraint-edit-modal').modal('hide');
+		if (id) {
+			ConstraintModel.putConstraint(_currentPortfolioId, id, constraint).then(_loadPortfolioView);
+		} else {
+			ConstraintModel.postConstraint(_currentPortfolioId, constraint).then(_loadPortfolioView);
+		}
+	}
+	function editConstraintHandler(constraintToEdit) {
+		var promises = [
+			ConstraintModel.getConstraintById(_currentPortfolioId, constraintToEdit),
+			GeographyModel.getGeographiesByPortfolio(_currentPortfolioId),
+			ContractModel.getContractsByPortfolio(_currentPortfolioId)
+		];
+		RSVP.all(promises).then(function(data) {
+			console.log(data);
+			_constraintEditView.update({
+				contract: _.values(data[2]),
+				portfolio: {
+					name: _portfolioMapping[_currentPortfolioId],
+					id: _currentPortfolioId
+				},
+				geography: data[1],
+				constraint: data[0]
+			});
+			$('#constraint-edit-modal').modal({
+				backdrop: false
+			});
 		});
-	});
+	}
 
-	$('#clear-all').on('click', function(e) {
-		console.log('clear all');
-		$.post('clear-all', function() {
-			console.log('cleared');
-		});
-	});
-	*/
+	// $('#run-r').on('click', function(e) {
+	// 	console.log('run');
+	// 	$.post('//ec2-52-0-86-122.compute-1.amazonaws.com/ocpu/library/opt/opt_test.R', function(data) {
+	// 		console.log('post return');
+	// 	}).done(function() {
+	// 		console.log('done');
+	// 	});
 });

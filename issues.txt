@@ -1,0 +1,26 @@
+* Portfolio dropdown has empty options when there are no created portfolios
+* When you delete portfolio and no portfolio is left, the view is not emptied.
+* JS error when you have contract constraints for contracts not in the portfolio contracts
+* When you create a portfolio and non was created before, be sure to clear the view.
+* Pressing enter should confirm dialogs
+* Escape exits dialog
+* Move portfolio constraints up to the top
+* Portfolio constraints are not optional
+* Validation for constraint values 
+	Target return is percentages, but cannot be larger than largest contract return
+	Tvar between .01% to 100 percent, force to 2 significant digits
+	Total size in $
+	Max investment can't be larger than largest contract principle amount for contract,
+		By default it should be the max princle ammount execpt for group selection
+	min investment is 0 default 
+
+* contract flight times
+
+
+
+* Adding logging
+* Refactor using connection pool
+* Gracefully 
+
+
+* Global Contracts

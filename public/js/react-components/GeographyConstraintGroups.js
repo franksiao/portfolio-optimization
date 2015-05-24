@@ -7,43 +7,28 @@ define([
 	React
 ) {
 
-	// function findMatchingGroup(constraint, groups) {
-	// 	for (var i = 0; i < groups.length; ++i) {
-	// 		if (groups[i].max_investment === constraint.max_investment &&
-	// 			groups[i].min_investment === constraint.min_investment) {
-	// 			return i;
-	// 		}
-	// 	}
-	// 	return -1;
-	// }
-
 	return React.createClass({
 		handleRemoveGroup: function(groupIndex, event) {
 			event.stopPropagation();
 			this.props.onChange(groupIndex);
-			// var contract_groups = this.props.contract_groups;
-			// this.props.onChange(contract_groups[groupIndex].contract_ids);
-			// contract_groups.splice(groupIndex, 1);
-			// this.setState({
-				// contract_groups: contract_groups
-			// });
+		},
+		getData: function() {
+			var data = [];
+			this.props.geography_groups.forEach(function(group, groupIndex) {
+				var maxState = this.refs['max_investment_checkbox_' + groupIndex].state;
+				var minState = this.refs['min_investment_checkbox_' + groupIndex].state;
+				group.geos.forEach(function(geo) {
+					data.push({
+						geography: geo,
+						max_investment: maxState.isChecked ? maxState.value : null,
+						min_investment: minState.isChecked ? minState.value : null
+					});
+				});
+			}.bind(this));
+			return data;
 		},
 		render: function() {
-			// var groups = [];
 			var elementGroups = [];
-			// this.props.constraints.forEach(function(constraint) {
-			// 	var matchingIndex = findMatchingGroup(constraint, groups);
-			// 	if (matchingIndex === -1) {
-			// 		groups.push({
-			// 			geos: [constraint.geography],
-			// 			max_investment: constraint.max_investment,
-			// 			min_investment: constraint.min_investment
-			// 		});
-			// 	} else {
-			// 		groups[matchingIndex].geos.push(constraint.geography);
-			// 	}
-			// });
-
 			this.props.geography_groups.forEach(function(group, index) {
 				elementGroups.push(
 					<div className="form-group constraint-group">
@@ -56,12 +41,12 @@ define([
 							</button>
 						</label>
 						<CheckBoxOption
-							ref={'max_investment_checkbox'}
+							ref={'max_investment_checkbox_'+index}
 							value={group.max_investment}
 							label={'Maximum Investment'}
 						/>
 						<CheckBoxOption
-							ref={'min_investment_checkbox'}
+							ref={'min_investment_checkbox_'+index}
 							value={group.min_investment}
 							label={'Minimum Investment'}
 						/>

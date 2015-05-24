@@ -9,8 +9,10 @@ var RSVP = require('rsvp');
 var ApiUtils = require('./ApiUtils');
 var _ = require('underscore');
 
-exports.setup = function(router, connection) {
+exports.setup = function(router) {
 	router.get('/portfolio', function(req, res, next) {
+		console.log(arguments);
+		var connection = req.connection;
 		req.checkQuery('id', 'Invalid id').optional().isValidId();
 		if (ApiUtils.handleError(req,res)) {
 			return;
@@ -27,6 +29,7 @@ exports.setup = function(router, connection) {
 	});
 
 	router.put('/portfolio', function(req, res, next) {
+		var connection = req.connection;
 		req.checkBody('id', 'Invalid id').notEmpty().isInt();
 		req.checkBody('name', 'Invalid name').notEmpty().isAlphanumeric();
 
@@ -44,6 +47,7 @@ exports.setup = function(router, connection) {
 	});
 
 	router.post('/portfolio', function(req, res, next) {
+		var connection = req.connection;
 		req.checkBody('name', 'Invalid name').notEmpty().isAlphanumeric();
 
 		if (ApiUtils.handleError(req,res)) {
@@ -59,6 +63,7 @@ exports.setup = function(router, connection) {
 	});
 
 	router.delete('/portfolio', function(req, res, next) {
+		var connection = req.connection;
 		req.checkBody('id', 'Invalid id').notEmpty().isInt();
 		if (ApiUtils.handleError(req,res)) {
 			return;

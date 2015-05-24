@@ -45,7 +45,11 @@ exports.update = function(connection, params) {
 	var queries = [];
 	fields.forEach(function(field) {
 		if (params[field] !== undefined) {
-			queries.push(field +  '=\'' + params[field] + '\'');
+			if (params[field] === null) {
+				queries.push(field + '=null');
+			} else {
+				queries.push(field +  '=\'' + params[field] + '\'');
+			}
 		}
 	});
 	if (queries.length === 0) {

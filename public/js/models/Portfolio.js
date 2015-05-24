@@ -6,38 +6,40 @@ define([
 	RSVP
 ) {
 	function _getAllPortfolios() {
-		var promise = new RSVP.Promise(function(resolve, reject) {
-			$.get( "portfolio", {'blah': 'blah'}, function(data) {
-				resolve(data);
-			});
-		});
-		return promise;
-	}
-	function _createNewPortfolio(name) {
 		return (new RSVP.Promise(function(resolve, reject) {
-			$.post( "portfolio", {name: name}, function(data) {
-				console.log(data);
-				resolve(data.data.id);
+			$.ajax({
+				url: 'portfolio',
+				type: 'GET'
+			}).done(function(response) {
+				resolve(response.data);
+			}).fail(function(err) {
+				reject(err.responseText);
 			});
 		}));
 	}
-	function _changePortfolioName(id, name) {
+	function _postPortfolio(name) {
+		return (new RSVP.Promise(function(resolve, reject) {
+			$.ajax({
+				url: 'portfolio',
+				type: 'POST',
+				data: {name: name}
+			}).done(function(response) {
+				resolve(response.data.id);
+			}).fail(function(err) {
+				reject(err);
+			});
+		}));
+	}
+	function _putPortfolio(portfolio) {
 		return (new RSVP.Promise(function(resolve, reject) {
 			$.ajax({
 				url: 'portfolio',
 				type: 'PUT',
-				data: {
-					id: id,
-					name: name
-				},
-				success: function(response) {
-					if (response.status === 'success') {
-						resolve(response.data);
-					} else {
-						console.assert(response.status, response.error);
-						reject(response.error);
-					}
-				}
+				data: portfolio
+			}).done(function(response) {
+				resolve(response.data);
+			}).fail(function(err) {
+				reject(err);
 			});
 		}));
 	}
@@ -49,22 +51,18 @@ define([
 				type: 'DELETE',
 				data: {
 					id: id
-				},
-				success: function(response) {
-					if (response.status === 'success') {
-						resolve(response.data);
-					} else {
-						console.assert(response.status, response.error);
-						reject(response.error);
-					}
 				}
+			}).done(function(response) {
+				resolve(response.data);
+			}).fail(function(err) {
+				reject(err);
 			});
 		}));
 	}
 	return {
 		getAllPortfolios: _getAllPortfolios,
-		createNewPortfolio: _createNewPortfolio,
-		changePortfolioName: _changePortfolioName,
+		postPortfolio: _postPortfolio,
+		putPortfolio: _putPortfolio,
 		deletePortfolio: _deletePortfolio
 	};
 });

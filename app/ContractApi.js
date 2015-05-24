@@ -40,8 +40,9 @@ var convertDataToJson = function(data) {
 	}));
 }
 
-exports.setup = function(router, connection) {
+exports.setup = function(router) {
 	router.get('/contract', function(req, res, next) {
+		var connection = req.connection;
 		req.checkQuery('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
 		req.checkQuery('id', 'Invalid id').optional().isValidId();
 		if (ApiUtils.handleError(req,res)) {
@@ -61,6 +62,7 @@ exports.setup = function(router, connection) {
 	});
 
 	router.put('/contract', function(req, res, next) {
+		var connection = req.connection;
 		//validation
 		req.checkBody('id', 'Invalid').notEmpty().isInt();
 		req.checkBody('name', 'Invalid name').optional().notEmpty().isAlphanumeric();
@@ -77,6 +79,7 @@ exports.setup = function(router, connection) {
 		);
 	});
 	router.delete('/contract', function(req, res, next) {
+		var connection = req.connection;
 		//validation
 		req.checkBody('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
 		req.checkBody('id', 'Invalid id').notEmpty().isValidId();
@@ -126,6 +129,7 @@ exports.setup = function(router, connection) {
 		}
 	});
 	router.post('/contract', function(req,res) {
+		var connection = req.connection;
 		req.checkBody('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
 		req.checkBody('type', 'Invalid type').notEmpty().isValidType(['AIR']);
 		req.checkBody('name', 'Invalid name').notEmpty().isAlphanumeric();

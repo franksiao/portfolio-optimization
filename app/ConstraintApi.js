@@ -85,8 +85,9 @@ function checkNull(value) {
 	}
 }
 
-exports.setup = function(router, connection) {
+exports.setup = function(router) {
 	router.get('/constraint', function(req, res) {
+		var connection = req.connection;
 		//validation
 		req.checkQuery('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
 		req.checkQuery('id', 'Invalid id').optional().isValidId();
@@ -190,8 +191,9 @@ exports.setup = function(router, connection) {
 		}
 	});
 	router.post('/constraint', function(req, res) {
+		var connection = req.connection;
 		req.checkBody('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
-		req.checkBody('name', 'Invalid name').notEmpty().isAlphanumeric();
+		req.checkBody('name', 'Invalid name').notEmpty().isValidString();
 		req.checkBody('target_return', 'Invalid target_return').optional().isNumericOrNull();
 		req.checkBody('target_tvar_threshold', 'Invalid target_tvar_threshold').optional().isNumericOrNull();
 		req.checkBody('total_size', 'Invalid total_size').optional().isNumericOrNull();
@@ -203,7 +205,7 @@ exports.setup = function(router, connection) {
 			return;
 		}
 		var contractConstraints = req.body.contract_constraint;
-		var geographyConstraint = req.body.geography_constraint;
+		var geographyConstraints = req.body.geography_constraint;
 
 		//query
 		var params = {
@@ -214,10 +216,16 @@ exports.setup = function(router, connection) {
 		params = setParam(params, 'target_tvar_threshold', req.body.target_tvar_threshold);
 		params = setParam(params, 'total_size', req.body.total_size);
 
-		ConstraintSetQuery.insert(connection, params)
-		.then(insertContractConstraintHandler)
-		.then(insertGeographyConstraintHandler)
-		.then(
+		var promise = ConstraintSetQuery.insert(connection, params);
+
+		if (contractConstraints && contractConstraints.length) {
+			promise = promise.then(insertContractConstraintHandler);
+		}
+		if (geographyConstraints && geographyConstraints.length) {
+			promise = promise.then(insertGeographyConstraintHandler);
+		}
+
+		promise.then(
 			ApiUtils.DefaultApiSuccessHandler(res),
 			ApiUtils.DefaultApiFailureHandler(res)
 		);
@@ -247,7 +255,7 @@ exports.setup = function(router, connection) {
 		function insertGeographyConstraintHandler(constraintSet) {
 			return (new RSVP.Promise(function(resolve,reject) {
 				var formattedGeoConstraints = [];
-				geographyConstraint.forEach(function(value) {
+				geographyConstraints.forEach(function(value) {
 					formattedGeoConstraints.push([
 						constraintSet.id,
 						value.geography,
@@ -269,6 +277,7 @@ exports.setup = function(router, connection) {
 	});
 
 	router.put('/constraint', function(req, res) {
+		var connection = req.connection;
 		//validation
 		req.checkBody('id', 'Invalid').notEmpty().isInt();
 		req.checkBody('name', 'Invalid name').optional().notEmpty().isAlphanumeric();
@@ -283,8 +292,8 @@ exports.setup = function(router, connection) {
 		if (ApiUtils.handleError(req,res)) {
 			return;
 		}
-		var contractConstraints = req.body.contract_constraint;
-		var geographyConstraints = req.body.geography_constraint;
+		var contractConstraints = req.body.contract_constraint || [];
+		var geographyConstraints = req.body.geography_constraint || [];
 		//query
 		var params = {
 			id: req.body.id
@@ -295,14 +304,17 @@ exports.setup = function(router, connection) {
 		params = setParam(params, 'total_size', req.body.total_size);
 
 		var promise = ConstraintSetQuery.update(connection, params);
-		if (Array.isArray(contractConstraints)) {
-			promise = promise.then(deleteContractConstraintHandler)
-						.then(insertContractConstraintHandler);
+
+		promise = promise.then(deleteContractConstraintHandler)
+		if (contractConstraints.length > 0) {
+			promise = promise.then(insertContractConstraintHandler);
 		}
-		if (Array.isArray(geographyConstraints)) {
-			promise = promise.then(deleteGeographyConstraintHandler)
-			.then(insertGeographyConstraintHandler)
+		
+		promise = promise.then(deleteGeographyConstraintHandler)
+		if (geographyConstraints.length > 0) {
+			promise = promise.then(insertGeographyConstraintHandler)
 		}
+
 		promise.then(
 			ApiUtils.DefaultApiSuccessHandler(res),
 			ApiUtils.DefaultApiFailureHandler(res)
@@ -381,6 +393,7 @@ exports.setup = function(router, connection) {
 	});
 
 	router.delete('/constraint', function(req, res) {
+		var connection = req.connection;
 		//validation
 		req.checkBody('portfolio_id', 'Invalid portfolio_id').notEmpty().isInt();
 		req.checkBody('id', 'Invalid id').notEmpty().isValidId();
