@@ -46,8 +46,9 @@ function setupRoutes() {
 }
 
 function startServer() {
-	app.listen(3001, function() {
-		console.log('Server Started');
+	app.set('port', (process.env.PORT || 3001));
+	app.listen(app.get('port'), function() {
+		console.log("Node app is running at localhost:" + app.get('port'));
 	});
 }
 
