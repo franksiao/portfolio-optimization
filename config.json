@@ -1,0 +1,6 @@
+{
+	"db_user": "testmaster",
+  	"db_password": "2010Audi",
+  	"db_host": "opt-test.cdfpkx5gtgl4.us-east-1.rds.amazonaws.com",
+  	"db_port": 3306
+}
