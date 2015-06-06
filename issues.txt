@@ -19,8 +19,7 @@
 
 
 * Adding logging
-* Refactor using connection pool
-* Gracefully 
+* Gracefully fail
 
 
 * Global Contracts

@@ -11,6 +11,7 @@ define([
 	'bootstrap-dialog',
 	'react',
 	'jsx!react-components/ConstraintEdit',
+	'visualizations/EfficientFrontier',
 	'JSXTransformer',
 	'bootstrap-select',
 	"jquery-form",
@@ -29,7 +30,8 @@ define([
 	RSVP,
 	BootstrapDialog,
 	React,
-	ConstraintEdit
+	ConstraintEdit,
+	EfficientFrontier
 ) {
 
 	var _constraintEditView = new ConstraintEdit({
@@ -304,7 +306,9 @@ define([
 			}
 		});
 	}
-
+	var graph = new EfficientFrontier({
+		parent_selector: '#visual-content'
+	});
 	// $('#run-r').on('click', function(e) {
 	// 	console.log('run');
 	// 	$.post('//ec2-52-0-86-122.compute-1.amazonaws.com/ocpu/library/opt/opt_test.R', function(data) {

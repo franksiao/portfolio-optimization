@@ -13,7 +13,8 @@ requirejs.config({
       'bootstrap-select': 'lib/bootstrap-select',
       'react': 'lib/react/build/react-with-addons',
       'JSXTransformer': 'lib/react/build/JSXTransformer',
-      'jsx': 'lib/react/build/jsx'
+      'jsx': 'lib/react/build/jsx',
+      'd3': 'lib/d3'
     },
     'shim': {
         'jquery-form': {
